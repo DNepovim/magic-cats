@@ -1,0 +1,116 @@
+---
+import * as m from '@/paraglide/messages'
+
+const features = [
+  {
+    title: m.feature_1_title(),
+    desc: m.feature_1_desc(),
+    seeds: ['f1a', 'f1b'],
+    rotate: '2deg',
+    bg: 'linear-gradient(145deg, #1a003a, #003020)',
+    accentColor: 'var(--color-lime)',
+    badge: { text: '⚔️ EPIC', cls: 'badge-hot' },
+    stars: '⭐⭐⭐⭐⭐',
+    titleFont: 'var(--font-chunky)',
+    extraTag: '🏆 TOP RATED',
+  },
+  {
+    title: m.feature_2_title(),
+    desc: m.feature_2_desc(),
+    seeds: ['f2a', 'f2b'],
+    rotate: '-2.5deg',
+    bg: 'linear-gradient(145deg, #00103a, #2a0040)',
+    accentColor: 'var(--color-cyan)',
+    badge: { text: '🔥 HOT', cls: 'badge-hot' },
+    stars: '⭐⭐⭐⭐⭐',
+    titleFont: 'var(--font-display)',
+    extraTag: '🌍 GLOBAL',
+  },
+  {
+    title: m.feature_3_title(),
+    desc: m.feature_3_desc(),
+    seeds: ['f3a', 'f3b'],
+    rotate: '3deg',
+    bg: 'linear-gradient(145deg, #1a0030, #001a20)',
+    accentColor: 'var(--color-magenta)',
+    badge: { text: '✨ NEW', cls: 'badge-new' },
+    stars: '⭐⭐⭐⭐⭐',
+    titleFont: 'var(--font-marker)',
+    extraTag: '🔮 MAGIC',
+  },
+]
+---
+
+<section class="py-16 px-4 relative overflow-hidden"
+  style="background: linear-gradient(180deg, var(--color-void) 0%, var(--color-deep-purple) 50%, var(--color-void) 100%);">
+
+  <div class="absolute inset-0 pointer-events-none opacity-20"
+    style="background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(155,0,255,0.05) 40px, rgba(155,0,255,0.05) 80px);">
+  </div>
+
+  <div class="max-w-6xl mx-auto relative">
+    <div class="text-center mb-12 relative">
+      <div class="font-retro text-xs mb-3 blink" style="color: var(--color-lime);">[ SELECT YOUR POWER ]</div>
+      <h2 class="title-shimmer inline-block" style="font-family: var(--font-chunky); font-size: clamp(2.5rem, 6vw, 4.5rem);">
+        {m.features_title()}
+      </h2>
+      <div class="font-marker text-xl mt-2" style="color: var(--color-magenta); transform: rotate(-1.5deg); display:inline-block;">
+        — because normal games are boring! —
+      </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-10 items-stretch justify-center">
+      {features.map((feature, i) => (
+        <div
+          class="flex-1 relative flex flex-col gap-4 p-6 rounded-2xl"
+          style={`background: ${feature.bg}; transform: rotate(${feature.rotate}); border: 3px solid ${feature.accentColor}; box-shadow: 0 0 20px ${feature.accentColor}55, inset 0 0 30px rgba(0,0,0,0.5); max-width: 340px; margin: 0 auto;`}
+        >
+          <div class="absolute -top-3 -right-3 z-10">
+            <span class={feature.badge.cls}>{feature.badge.text}</span>
+          </div>
+
+          <div class="flex gap-3 items-start">
+            <img
+              src={`https://cataas.com/cat?width=100&height=100&seed=${feature.seeds[0]}`}
+              alt={feature.title}
+              width="100"
+              height="100"
+              loading="lazy"
+              class="rounded-xl object-cover flex-shrink-0"
+              style={`border: 2px solid ${feature.accentColor}; box-shadow: 0 0 10px ${feature.accentColor}88;`}
+              onerror="this.style.display='none'"
+            />
+            <img
+              src={`https://cataas.com/cat?width=80&height=80&seed=${feature.seeds[1]}`}
+              alt=""
+              width="80"
+              height="80"
+              loading="lazy"
+              class="rounded-xl object-cover flex-shrink-0 self-end"
+              style={`border: 2px solid var(--color-magic); transform: rotate(8deg); box-shadow: 0 0 8px var(--color-magic);`}
+              onerror="this.style.display='none'"
+            />
+          </div>
+
+          <div>
+            <span class="text-lg" style={`color: ${feature.accentColor}; font-family: var(--font-retro); font-size: 0.6rem; display:block; margin-bottom: 4px;`}>
+              {feature.extraTag}
+            </span>
+            <h3 style={`font-family: ${feature.titleFont}; color: var(--color-gold); font-size: 1.4rem; text-shadow: 0 0 8px var(--color-gold);`}>
+              {feature.title}
+            </h3>
+          </div>
+
+          <p style="color: var(--color-silver); font-family: var(--font-body); font-size: 1.05rem; line-height: 1.6;">
+            {feature.desc}
+          </p>
+
+          <div class="flex justify-between items-center mt-auto">
+            <span class="rainbow-text font-pixel text-xl">{feature.stars}</span>
+            <span class="font-retro text-xs blink" style={`color: ${feature.accentColor};`}>✦ PLAY</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,7 +1,7 @@
 ---
 import Analytics from "@vercel/analytics/astro";
-import Footer from "@/components/Footer.astro";
 import LanguageSwitcher from "@/components/LanguageSwitcher.astro";
+import PopupModals from "@/components/PopupModals.astro";
 import MetaTags from "@/components/MetaTags.astro";
 import "@/styles/global.css";
 import { UMAMI_SITE_ID } from "astro:env/client";
@@ -13,13 +13,12 @@ const locale = getLocale();
 const SITE_TITLE = m.site_title();
 
 type Props = {
-  currentEventId?: string;
   title?: string;
   description?: string;
   image?: string;
 };
 
-const { currentEventId, title, description, image } = Astro.props;
+const { title, description, image } = Astro.props;
 
 const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
 
@@ -30,7 +29,7 @@ const config = {
 ---
 
 <!doctype html>
-<html lang={locale} class="font-text">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -39,22 +38,18 @@ const config = {
     <MetaTags title={pageTitle} description={description} image={image} url={Astro.url.href} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Playfair+Display:wght@400;700&display=swap"
-    />
     <script is:inline defer src={config.url} data-website-id={config.websiteId}
     ></script>
     <slot name="head" />
   </head>
   <body>
     <Analytics />
-    <main id="swup" class="max-w-6xl mx-auto pt-2 sm:pt-4 pb-20 px-1 sm:px-8">
-      <div class="flex justify-end px-4 pb-2">
-        <LanguageSwitcher />
-      </div>
+    <header class="flex justify-end px-6 py-4">
+      <LanguageSwitcher />
+    </header>
+    <main>
       <slot />
-      <Footer currentEventId={currentEventId} />
     </main>
+    <PopupModals />
   </body>
 </html>

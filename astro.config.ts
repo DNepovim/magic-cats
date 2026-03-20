@@ -1,12 +1,8 @@
 // @ts-check
 import { resolve } from 'path'
-import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import vercel from '@astrojs/vercel'
-import swup, { Theme } from '@swup/astro'
 import tailwindcss from '@tailwindcss/vite'
-import { imageService } from '@unpic/astro/service'
-import icon from 'astro-icon'
 import { defineConfig } from 'astro/config'
 import { loadEnv } from 'vite'
 
@@ -18,13 +14,8 @@ export default defineConfig({
   env: envConfig,
   site: SITE_URL ?? 'http://localhost:4321',
   integrations: [
-    mdx(),
     sitemap({
       lastmod: new Date(),
-    }),
-    icon(),
-    swup({
-      theme: Theme.fade,
     }),
   ],
 
@@ -44,8 +35,8 @@ export default defineConfig({
   },
 
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'cs'],
+    defaultLocale: 'hu',
+    locales: ['hu', 'en', 'cs', 'sk'],
     routing: {
       prefixDefaultLocale: false,
     },
@@ -56,10 +47,4 @@ export default defineConfig({
       enabled: true,
     },
   }),
-
-  image: {
-    service: imageService({
-      placeholder: 'lqip',
-    }),
-  },
 })

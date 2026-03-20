@@ -1,0 +1,106 @@
+---
+import * as m from '@/paraglide/messages'
+
+const steps = [
+  {
+    num: '01',
+    title: m.step_1_title(),
+    desc: m.step_1_desc(),
+    seed: 'htp1',
+    numColor: 'var(--color-cyan)',
+    numFont: 'var(--font-retro)',
+    titleFont: 'var(--font-chunky)',
+    offset: '0px',
+    rotate: '-3deg',
+    bg: 'linear-gradient(135deg, #001a3a, #0a0030)',
+    tag: '🆓 FREE',
+  },
+  {
+    num: '02',
+    title: m.step_2_title(),
+    desc: m.step_2_desc(),
+    seed: 'htp2',
+    numColor: 'var(--color-magenta)',
+    numFont: 'var(--font-chunky)',
+    titleFont: 'var(--font-display)',
+    offset: '40px',
+    rotate: '2deg',
+    bg: 'linear-gradient(135deg, #1a003a, #001a10)',
+    tag: '⚡ FAST',
+  },
+  {
+    num: '03',
+    title: m.step_3_title(),
+    desc: m.step_3_desc(),
+    seed: 'htp3',
+    numColor: 'var(--color-gold)',
+    numFont: 'var(--font-display)',
+    titleFont: 'var(--font-marker)',
+    offset: '-20px',
+    rotate: '-1.5deg',
+    bg: 'linear-gradient(135deg, #1a0010, #0a1a00)',
+    tag: '🏆 WIN',
+  },
+]
+---
+
+<section class="py-20 px-4 relative overflow-hidden" style="background: var(--color-void);">
+  <div class="absolute inset-0 pointer-events-none"
+    style="background: radial-gradient(ellipse at 10% 50%, rgba(0,255,255,0.04) 0%, transparent 50%), radial-gradient(ellipse at 90% 50%, rgba(255,0,255,0.04) 0%, transparent 50%);">
+  </div>
+
+  <div class="max-w-5xl mx-auto relative">
+    <div class="text-center mb-16">
+      <span class="font-marker text-2xl blink" style="color: var(--color-lime);">✨ SUPER EASY ✨</span>
+      <h2 class="title-shimmer block mt-2" style="font-family: var(--font-chunky); font-size: clamp(2.5rem, 6vw, 4rem);">
+        {m.how_to_play_title()}
+      </h2>
+      <p class="font-pixel text-sm mt-3" style="color: var(--color-silver);">— 3 steps to DOMINATION —</p>
+    </div>
+
+    <div class="flex flex-col md:flex-row items-start gap-6 md:gap-4">
+      {steps.map((step, i) => (
+        <>
+          <div
+            class="flex-1 rounded-2xl p-6 relative"
+            style={`background: ${step.bg}; border: 2px solid ${step.numColor}; box-shadow: 0 0 25px ${step.numColor}44; transform: translateY(${step.offset}) rotate(${step.rotate}); max-width: 340px; margin: 0 auto;`}
+          >
+            <div class="absolute -top-4 -left-4 z-10 badge-new">{step.tag}</div>
+
+            <div class="flex gap-4 items-start mb-4">
+              <span
+                style={`font-family: ${step.numFont}; font-size: clamp(3rem, 8vw, 5rem); color: ${step.numColor}; line-height: 1; text-shadow: 0 0 20px ${step.numColor}, 0 0 40px ${step.numColor}; flex-shrink: 0;`}
+              >
+                {step.num}
+              </span>
+              <img
+                src={`https://cataas.com/cat?width=90&height=90&seed=${step.seed}`}
+                alt=""
+                width="90"
+                height="90"
+                loading="lazy"
+                class="rounded-xl object-cover"
+                style={`border: 2px solid ${step.numColor}; box-shadow: 0 0 10px ${step.numColor}66; transform: rotate(5deg);`}
+                onerror="this.style.display='none'"
+              />
+            </div>
+
+            <h3 style={`font-family: ${step.titleFont}; color: var(--color-gold); font-size: 1.35rem; margin-bottom: 0.5rem; text-shadow: 0 0 6px var(--color-gold);`}>
+              {step.title}
+            </h3>
+            <p style="color: var(--color-silver); font-family: var(--font-body); font-size: 1.05rem; line-height: 1.6;">
+              {step.desc}
+            </p>
+          </div>
+
+          {i < steps.length - 1 && (
+            <div class="hidden md:flex flex-col items-center justify-center self-center gap-1 px-2" style="margin-top: -20px;">
+              <span class="rainbow-text font-retro text-2xl">→</span>
+              <span class="pixel-text text-xs blink" style="color: var(--color-gold);">then</span>
+            </div>
+          )}
+        </>
+      ))}
+    </div>
+  </div>
+</section>

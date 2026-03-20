@@ -17,17 +17,11 @@
     "machine-translate": "inlang machine translate --project project.inlang"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.13",
     "@astrojs/sitemap": "^3.6.0",
     "@astrojs/vercel": "^9.0.2",
-    "@swup/astro": "^1.8.0",
     "@tailwindcss/vite": "^4.0.9",
-    "@unpic/astro": "^1.0.2",
     "@vercel/analytics": "^1.5.0",
-    "@vercel/og": "^0.11.1",
     "astro": "5.6.1",
-    "astro-icon": "^1.1.5",
-    "narrowland": "^1.5.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.0.9",
     "tailwindcss-motion": "^1.1.1"
@@ -38,6 +32,8 @@
     "@eslint/js": "^9.39.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@iconify-json/ph": "^1.2.2",
+    "@inlang/cli": "^3.0.0",
+    "@inlang/paraglide-js": "^2.15.0",
     "@types/node": "^22.18.0",
     "eslint": "^9.37.0",
     "eslint-plugin-astro": "^1.5.0",
@@ -51,8 +47,6 @@
     "schema-dts": "^1.1.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.47.0",
-    "vite": "^7.1.9",
-    "@inlang/paraglide-js": "^2.15.0",
-    "@inlang/cli": "^3.0.0"
+    "vite": "^7.1.9"
   }
 }

@@ -1,0 +1,255 @@
+---
+import * as m from '@/paraglide/messages'
+---
+
+<!-- Backdrop -->
+<div id="modal-backdrop" class="fixed inset-0 z-40 pointer-events-none" style="background: rgba(0,0,0,0.7); opacity:0; transition: opacity 0.3s;"></div>
+
+<!-- MODAL 1: Newsletter / Early Access -->
+<div id="modal-newsletter" class="fixed z-50 pointer-events-none"
+  style="top:50%; left:50%; transform:translate(-50%,-50%) scale(0.7); opacity:0; transition: all 0.4s cubic-bezier(.34,1.56,.64,1); max-width:460px; width:90vw;">
+  <div class="relative rounded-2xl p-1 overflow-hidden"
+    style="background: conic-gradient(from var(--angle), var(--color-magic), var(--color-magenta), var(--color-cyan), var(--color-gold), var(--color-magic)); animation: border-rotate 2s linear infinite;">
+    <div class="rounded-xl p-6 relative overflow-hidden"
+      style="background: linear-gradient(145deg, #0a001f, #1a003a, #00101a);">
+
+      <div class="absolute inset-0 pointer-events-none opacity-10"
+        style="background: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(155,0,255,0.1) 20px, rgba(155,0,255,0.1) 40px);">
+      </div>
+
+      <button id="close-newsletter" class="absolute top-3 right-3 z-10 font-retro text-xs cursor-pointer"
+        style="color: var(--color-silver); background: rgba(255,255,255,0.1); border: 1px solid var(--color-magic); border-radius: 4px; padding: 4px 8px; transition: all 0.2s;"
+        onmouseover="this.style.background='var(--color-magic)'; this.style.color='white'"
+        onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='var(--color-silver)'"
+      >✕ CLOSE</button>
+
+      <div class="text-center mb-4">
+        <div class="inline-block badge-new mb-3">🎁 EXCLUSIVE OFFER</div>
+        <img src="https://cataas.com/cat?width=100&height=100&seed=modal1" alt="Magic Cat" width="100" height="100"
+          class="rounded-full mx-auto mb-3 object-cover"
+          style="border: 3px solid var(--color-gold); box-shadow: 0 0 20px var(--color-gold), 0 0 40px var(--color-magic); animation: float 4s ease-in-out infinite;"
+          onerror="this.style.display='none'" />
+        <h3 class="title-shimmer" style="font-family: var(--font-chunky); font-size: 2rem; line-height: 1.1;">
+          🌟 Join the Magic! 🌟
+        </h3>
+        <p class="font-cursive text-lg mt-2" style="color: var(--color-cyan);">
+          Get <span class="blink font-chunky" style="color: var(--color-gold); font-size: 1.4rem;">3 FREE</span> magic scrolls on signup!
+        </p>
+        <p class="pixel-text text-sm mt-1" style="color: var(--color-lime);">⚡ LIMITED TIME — ONLY 37 SPOTS LEFT ⚡</p>
+      </div>
+
+      <form class="flex flex-col gap-3" method="POST" action="#">
+        <input type="email" placeholder={m.join_email_placeholder()} required
+          class="rounded-lg px-4 py-3 outline-none w-full"
+          style="background: rgba(0,0,0,0.5); color: var(--color-silver); font-family: var(--font-pixel); font-size: 0.85rem; border: 2px solid var(--color-magic); box-shadow: 0 0 8px var(--color-magic)44;" />
+        <button type="submit" class="btn-magic w-full text-lg">
+          🐱 {m.join_cta()} 🐱
+        </button>
+      </form>
+
+      <p class="text-center mt-3 font-retro text-xs" style="color: var(--color-silver); opacity: 0.6;">
+        No spam. Unsubscribe anytime. We love cats 🐱
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2: Flash Sale -->
+<div id="modal-sale" class="fixed z-50 pointer-events-none"
+  style="top:50%; left:50%; transform:translate(-50%,-50%) scale(0.7); opacity:0; transition: all 0.4s cubic-bezier(.34,1.56,.64,1); max-width:480px; width:90vw;">
+  <div class="relative rounded-2xl p-1 overflow-hidden"
+    style="background: linear-gradient(135deg, #ff6600, #ff0055, #ff6600); background-size: 200% 200%; animation: title-shimmer 2s ease infinite;">
+    <div class="rounded-xl p-6 relative overflow-hidden"
+      style="background: linear-gradient(145deg, #1a0500, #1a0010);">
+
+      <div class="absolute inset-0 pointer-events-none"
+        style="background: radial-gradient(ellipse at top, rgba(255,102,0,0.15) 0%, transparent 60%);">
+      </div>
+
+      <button id="close-sale" class="absolute top-3 right-3 z-10 font-retro text-xs cursor-pointer"
+        style="color: var(--color-silver); background: rgba(255,255,255,0.1); border: 1px solid #ff6600; border-radius: 4px; padding: 4px 8px; transition: all 0.2s;"
+        onmouseover="this.style.background='#ff6600'; this.style.color='white'"
+        onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='var(--color-silver)'"
+      >✕ CLOSE</button>
+
+      <div class="text-center">
+        <div class="inline-block badge-hot mb-3">🔥 FLASH SALE 🔥</div>
+
+        <div class="flex justify-center gap-4 mb-4">
+          <img src="https://cataas.com/cat?width=80&height=80&seed=sale1" alt="" width="80" height="80"
+            class="rounded-xl object-cover" style="border: 2px solid #ff6600; box-shadow: 0 0 15px #ff660088; transform: rotate(-8deg);"
+            onerror="this.style.display='none'" />
+          <img src="https://cataas.com/cat?width=80&height=80&seed=sale2" alt="" width="80" height="80"
+            class="rounded-xl object-cover" style="border: 2px solid #ff0055; box-shadow: 0 0 15px #ff005588; transform: rotate(8deg);"
+            onerror="this.style.display='none'" />
+        </div>
+
+        <h3 style="font-family: var(--font-chunky); font-size: 2.2rem; color: #ff6600; text-shadow: 0 0 20px #ff6600, 0 0 40px #ff0055; line-height: 1.1;">
+          ⚡ TODAY ONLY ⚡
+        </h3>
+
+        <div class="flex items-center justify-center gap-4 my-4">
+          <span class="font-chunky line-through" style="color: var(--color-silver); font-size: 1.8rem; opacity: 0.6;">€29.99</span>
+          <span class="zoom-pulse inline-block font-chunky" style="font-size: 3.5rem; color: var(--color-lime); text-shadow: 0 0 20px var(--color-lime);">FREE!</span>
+        </div>
+
+        <div class="magic-border rounded-lg p-3 mb-4" style="background: rgba(0,0,0,0.4);">
+          <p class="font-marker text-lg" style="color: var(--color-gold);">✨ What you get:</p>
+          <ul class="text-left mt-2 flex flex-col gap-1">
+            <li class="pixel-text text-sm" style="color: var(--color-cyan);">▶ 500 Magic Gems</li>
+            <li class="pixel-text text-sm" style="color: var(--color-lime);">▶ Legendary Cat Skin 🐱</li>
+            <li class="pixel-text text-sm" style="color: var(--color-magenta);">▶ VIP Tribe Badge</li>
+            <li class="pixel-text text-sm" style="color: var(--color-gold);">▶ 7-day XP Boost ⚡</li>
+          </ul>
+        </div>
+
+        <div class="mb-4">
+          <p class="font-retro text-xs blink" style="color: #ff6600;">⏰ OFFER EXPIRES IN:</p>
+          <div id="sale-countdown" class="font-chunky text-3xl mt-1" style="color: var(--color-gold); text-shadow: 0 0 10px var(--color-gold);">
+            09:59
+          </div>
+        </div>
+
+        <a href="#join" id="sale-cta" class="btn-magic w-full inline-block text-xl zoom-pulse">
+          🔥 CLAIM FREE NOW 🔥
+        </a>
+
+        <p class="mt-3 font-retro text-xs" style="color: var(--color-silver); opacity: 0.5;">
+          *One per account. New players only.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 3: Benefits -->
+<div id="modal-benefits" class="fixed z-50 pointer-events-none"
+  style="top:50%; left:50%; transform:translate(-50%,-50%) scale(0.7); opacity:0; transition: all 0.4s cubic-bezier(.34,1.56,.64,1); max-width:420px; width:90vw;">
+  <div class="relative rounded-2xl p-1"
+    style="background: linear-gradient(135deg, var(--color-cyan), var(--color-magic), var(--color-gold));">
+    <div class="rounded-xl p-6 relative overflow-hidden"
+      style="background: linear-gradient(145deg, #001520, #0a0030);">
+
+      <button id="close-benefits" class="absolute top-3 right-3 z-10 font-retro text-xs cursor-pointer"
+        style="color: var(--color-silver); background: rgba(255,255,255,0.1); border: 1px solid var(--color-cyan); border-radius: 4px; padding: 4px 8px; transition: all 0.2s;"
+        onmouseover="this.style.background='var(--color-cyan)'; this.style.color='black'"
+        onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='var(--color-silver)'"
+      >✕ CLOSE</button>
+
+      <div class="text-center mb-4">
+        <div class="inline-block badge-new mb-3">👑 VIP MEMBERS ONLY</div>
+        <img src="https://cataas.com/cat?width=90&height=90&seed=benefits1" alt="" width="90" height="90"
+          class="rounded-full mx-auto mb-3 object-cover wobble"
+          style="border: 3px solid var(--color-cyan); box-shadow: 0 0 20px var(--color-cyan);"
+          onerror="this.style.display='none'" />
+        <h3 style="font-family: var(--font-marker); font-size: 1.9rem; color: var(--color-cyan); text-shadow: 0 0 15px var(--color-cyan);">
+          Your Benefits Await! 🎉
+        </h3>
+      </div>
+
+      <div class="flex flex-col gap-3 mb-5">
+        {[
+          { icon: '🏆', title: 'Daily Rewards', desc: 'Log in every day for bonus gems', color: 'var(--color-gold)' },
+          { icon: '⚔️', title: 'Clan Wars',     desc: 'Exclusive weekend tournaments',  color: 'var(--color-magenta)' },
+          { icon: '🌍', title: 'Global Chat',   desc: 'Chat with players worldwide',    color: 'var(--color-cyan)' },
+          { icon: '🎴', title: 'Magic Cards',   desc: 'Collect & trade rare cat cards', color: 'var(--color-lime)' },
+        ].map(b => (
+          <div class="flex items-center gap-3 rounded-lg p-3"
+            style={`background: rgba(0,0,0,0.3); border: 1px solid ${b.color}44;`}>
+            <span class="text-2xl flex-shrink-0">{b.icon}</span>
+            <div>
+              <p class="font-retro text-xs" style={`color: ${b.color};`}>{b.title}</p>
+              <p class="font-body text-sm" style="color: var(--color-silver);">{b.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <a href="#join" id="benefits-cta" class="btn-magic w-full inline-block text-center text-lg">
+        ✨ GET ALL BENEFITS ✨
+      </a>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    const backdrop = document.getElementById('modal-backdrop')
+    const modals = {
+      newsletter: document.getElementById('modal-newsletter'),
+      sale:       document.getElementById('modal-sale'),
+      benefits:   document.getElementById('modal-benefits'),
+    }
+
+    let currentModal = null
+
+    function showModal(id) {
+      if (currentModal) hideModal(currentModal, false)
+      currentModal = id
+      const el = modals[id]
+      backdrop.style.opacity = '1'
+      backdrop.style.pointerEvents = 'auto'
+      el.style.opacity = '1'
+      el.style.pointerEvents = 'auto'
+      el.style.transform = 'translate(-50%,-50%) scale(1)'
+    }
+
+    function hideModal(id, clearBackdrop = true) {
+      const el = modals[id]
+      if (!el) return
+      el.style.opacity = '0'
+      el.style.pointerEvents = 'none'
+      el.style.transform = 'translate(-50%,-50%) scale(0.7)'
+      if (clearBackdrop) {
+        backdrop.style.opacity = '0'
+        backdrop.style.pointerEvents = 'none'
+        currentModal = null
+      }
+    }
+
+    // Close buttons
+    document.getElementById('close-newsletter').addEventListener('click', () => hideModal('newsletter'))
+    document.getElementById('close-sale').addEventListener('click', () => hideModal('sale'))
+    document.getElementById('close-benefits').addEventListener('click', () => hideModal('benefits'))
+    backdrop.addEventListener('click', () => { if (currentModal) hideModal(currentModal) })
+
+    // Close CTAs that link to #join
+    ;['sale-cta', 'benefits-cta'].forEach(id => {
+      const el = document.getElementById(id)
+      if (el) el.addEventListener('click', () => { if (currentModal) hideModal(currentModal) })
+    })
+
+    // Countdown timer for sale modal
+    let seconds = 599
+    setInterval(function () {
+      const el = document.getElementById('sale-countdown')
+      if (!el) return
+      seconds = Math.max(0, seconds - 1)
+      const m = String(Math.floor(seconds / 60)).padStart(2, '0')
+      const s = String(seconds % 60).padStart(2, '0')
+      el.textContent = m + ':' + s
+    }, 1000)
+
+    // Queue: newsletter → 2.5s, sale → 12s, benefits → 25s
+    const queue = [
+      { id: 'newsletter', delay: 2500 },
+      { id: 'sale',       delay: 12000 },
+      { id: 'benefits',   delay: 25000 },
+    ]
+
+    queue.forEach(function (item) {
+      setTimeout(function () {
+        if (!currentModal) showModal(item.id)
+        else {
+          // If another modal is open, wait for it to close then show
+          const wait = setInterval(function () {
+            if (!currentModal) {
+              clearInterval(wait)
+              setTimeout(function () { showModal(item.id) }, 3000)
+            }
+          }, 500)
+        }
+      }, item.delay)
+    })
+  })()
+</script>

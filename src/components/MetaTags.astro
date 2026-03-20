@@ -4,7 +4,8 @@ import * as m from '@/paraglide/messages'
 
 const SITE_NAME = m.site_title()
 const locale = getLocale()
-const ogLocale = locale === 'cs' ? 'cs_CZ' : 'en_US'
+const ogLocaleMap: Record<string, string> = { hu: 'hu_HU', en: 'en_US', cs: 'cs_CZ', sk: 'sk_SK' }
+const ogLocale = ogLocaleMap[locale] ?? 'hu_HU'
 
 type Props = {
   title: string;

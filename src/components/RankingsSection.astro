@@ -1,0 +1,89 @@
+---
+import * as m from '@/paraglide/messages'
+
+const players = [
+  { rank: 1, name: 'eliceek',           score: 98450,  tribe: '🔮 Shadow Claws',   seed: 'rank1', rowBg: 'linear-gradient(90deg, rgba(255,215,0,0.12), rgba(155,0,255,0.08))',  nameColor: 'var(--color-gold)'    },
+  { rank: 2, name: 'dominikuznicimte', score: 87230,  tribe: '⚡ Storm Cats',      seed: 'rank2', rowBg: 'linear-gradient(90deg, rgba(0,255,255,0.06), transparent)',           nameColor: 'var(--color-cyan)'    },
+  { rank: 3, name: 'Kelthos',          score: 75890,  tribe: '🔮 Shadow Claws',   seed: 'rank3', rowBg: 'linear-gradient(90deg, rgba(255,0,255,0.06), transparent)',           nameColor: 'var(--color-magenta)' },
+  { rank: 4, name: 'Ruprd',            score: 64120,  tribe: '🌙 Moon Pride',     seed: 'rank4', rowBg: 'rgba(255,255,255,0.02)',                                              nameColor: 'var(--color-silver)'  },
+  { rank: 5, name: 'StarPounce',       score: 52670,  tribe: '✨ Astral Felines', seed: 'rank5', rowBg: 'rgba(255,255,255,0.01)',                                              nameColor: 'var(--color-silver)'  },
+]
+---
+
+<section class="py-20 px-4 relative overflow-hidden"
+  style="background: linear-gradient(180deg, var(--color-void) 0%, #0a001f 100%);">
+
+  <div class="absolute top-0 right-0 w-64 h-64 opacity-10 pointer-events-none"
+    style="background: radial-gradient(circle, var(--color-gold) 0%, transparent 70%);">
+  </div>
+  <div class="absolute bottom-0 left-0 w-48 h-48 opacity-10 pointer-events-none"
+    style="background: radial-gradient(circle, var(--color-cyan) 0%, transparent 70%);">
+  </div>
+
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+      <div class="font-retro text-xs mb-3 blink" style="color: var(--color-lime);">[ LIVE RANKINGS ]</div>
+      <h2 style="font-family: var(--font-chunky); font-size: clamp(2.5rem, 6vw, 4rem); color: var(--color-gold); text-shadow: 0 0 10px var(--color-gold), 0 0 30px var(--color-magic);">
+        {m.rankings_title()}
+      </h2>
+      <span class="badge-hot mt-3 inline-block">🔴 LIVE</span>
+    </div>
+
+    <div class="rounded-2xl overflow-hidden" style="border: 3px solid var(--color-gold); box-shadow: 0 0 30px var(--color-gold)44, 0 0 60px var(--color-magic)33;">
+      <div style="background: linear-gradient(135deg, #1a003a, #2a005a, #001a3a);">
+        <table class="w-full">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--color-gold);">
+              <th class="px-3 py-4 text-left" style="color: var(--color-gold); font-family: var(--font-retro); font-size: 0.6rem;">#</th>
+              <th class="px-3 py-4 text-left" style="color: var(--color-gold); font-family: var(--font-retro); font-size: 0.6rem;">{m.rankings_player()}</th>
+              <th class="px-3 py-4 text-right" style="color: var(--color-gold); font-family: var(--font-retro); font-size: 0.6rem;">{m.rankings_score()}</th>
+              <th class="px-3 py-4 text-left hidden sm:table-cell" style="color: var(--color-gold); font-family: var(--font-retro); font-size: 0.6rem;">{m.rankings_tribe()}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {players.map((player) => (
+              <tr style={`background: ${player.rowBg}; border-bottom: 1px solid rgba(155,0,255,0.2);`}>
+                <td class="px-3 py-3">
+                  <span style={`font-family: var(--font-chunky); font-size: 1.4rem; color: ${player.nameColor}; text-shadow: 0 0 8px ${player.nameColor};`}
+                    class={player.rank === 1 ? 'blink' : ''}>
+                    {player.rank === 1 ? '👑' : player.rank}
+                  </span>
+                </td>
+                <td class="px-3 py-3">
+                  <div class="flex items-center gap-2">
+                    <img
+                      src={`https://cataas.com/cat?width=36&height=36&seed=${player.seed}`}
+                      alt={player.name}
+                      width="36"
+                      height="36"
+                      loading="lazy"
+                      class="rounded-full object-cover flex-shrink-0"
+                      style={`border: 2px solid ${player.nameColor}; box-shadow: 0 0 6px ${player.nameColor};`}
+                      onerror="this.style.display='none'"
+                    />
+                    <span style={`font-family: var(--font-display); color: ${player.nameColor}; font-size: 1rem; text-shadow: 0 0 6px ${player.nameColor}66;`}>
+                      {player.name}
+                    </span>
+                  </div>
+                </td>
+                <td class="px-3 py-3 text-right">
+                  <span class="pixel-text text-lg" style="color: var(--color-cyan);">
+                    {player.score.toLocaleString()}
+                  </span>
+                </td>
+                <td class="px-3 py-3 hidden sm:table-cell" style="color: var(--color-silver); font-family: var(--font-body); font-size: 1rem;">
+                  {player.tribe}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="text-center mt-8 flex flex-wrap justify-center gap-6">
+      <span class="font-marker text-xl" style="color: var(--color-magenta); transform: rotate(-2deg); display: inline-block;">Will YOU be #1? 🐱</span>
+      <span class="font-retro text-xs blink" style="color: var(--color-lime);">Updated every 60s</span>
+    </div>
+  </div>
+</section>
