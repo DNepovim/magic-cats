@@ -6,7 +6,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 export default defineConfig(
-  globalIgnores([".astro/*", "dist/*", ".vercel/*"]),
+  globalIgnores([".astro/*", "dist/*", ".vercel/*", ".svelte-kit/*", "build/*", "**/*.svelte"]),
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,

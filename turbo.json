@@ -6,7 +6,7 @@
       "persistent": true
     },
     "build": {
-      "outputs": ["dist/**", ".vercel/**", ".astro/**"]
+      "outputs": ["dist/**", "build/**", ".vercel/**", ".astro/**", ".svelte-kit/**"]
     },
     "preview": {
       "cache": false,
