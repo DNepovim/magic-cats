@@ -1,0 +1,26 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "outputs": ["dist/**", ".vercel/**", ".astro/**"]
+    },
+    "preview": {
+      "cache": false,
+      "persistent": true
+    },
+    "check": {},
+    "lint:check": {},
+    "lint:fix": {
+      "cache": false
+    },
+    "format:check": {},
+    "format:write": {
+      "cache": false
+    },
+    "typecheck": {}
+  }
+}
