@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages';
   import { supabase } from '$lib/supabase/client';
   import type { CatRow } from '$lib/supabase/types';
   import CatCard from './CatCard.svelte';
@@ -38,12 +39,12 @@
     <!-- top bar -->
     <header class="flex items-center justify-between gap-4">
       <div>
-        <span class="font-retro text-xs" style="color: var(--color-lime);">[ DASHBOARD ]</span>
+        <span class="font-retro text-xs" style="color: var(--color-lime);">{m.dashboard_label()}</span>
         <h1
           class="title-shimmer"
           style="font-family: var(--font-chunky); font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1;"
         >
-          Your Magic Tribe
+          {m.dashboard_title()}
         </h1>
       </div>
       <div class="flex items-center gap-3">
@@ -59,7 +60,7 @@
           class="font-retro rounded-md px-3 py-2 text-[0.6rem] disabled:opacity-50"
           style="color: var(--color-silver); background: rgba(255,255,255,0.06); border: 1px solid var(--color-magic);"
         >
-          {signingOut ? 'Bye…' : 'Sign out'}
+          {signingOut ? m.dashboard_signing_out() : m.dashboard_signout()}
         </button>
       </div>
     </header>
@@ -70,9 +71,9 @@
         <CatCard cat={myCat} variant="hero" />
 
         <div class="mt-6 rounded-xl p-4" style="background:rgba(8,0,26,0.5);border:1px dashed var(--color-magic);">
-          <p class="font-retro mb-2 text-xs" style="color:var(--color-cyan);">[ COMING SOON ]</p>
+          <p class="font-retro mb-2 text-xs" style="color:var(--color-cyan);">{m.dashboard_coming_soon_label()}</p>
           <p class="font-cursive text-lg" style="color:var(--color-silver);">
-            Train, battle, and trade your cat with the tribe. More actions on this dashboard soon.
+            {m.dashboard_coming_soon_text()}
           </p>
         </div>
       </div>
@@ -83,14 +84,14 @@
           <h2
             style="font-family: var(--font-display); color: var(--color-gold); font-size: 1.4rem; text-shadow: 0 0 10px var(--color-gold);"
           >
-            Other Tribes
+            {m.dashboard_other_tribes()}
           </h2>
-          <span class="badge-hot">🔴 LIVE</span>
+          <span class="badge-hot">{m.dashboard_live()}</span>
         </div>
 
         {#if otherCats.length === 0}
           <p class="font-cursive text-sm" style="color:var(--color-silver); opacity:0.7;">
-            You're the first to tame a cat. Be legendary.
+            {m.dashboard_first_cat()}
           </p>
         {:else}
           <ul class="flex flex-col gap-3">

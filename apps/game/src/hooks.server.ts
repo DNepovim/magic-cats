@@ -2,6 +2,7 @@ import { type CookieOptionsWithName, createServerClient } from '@supabase/ssr';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { paraglideMiddleware } from '$lib/paraglide/server';
 
 type CookieToSet = { name: string; value: string; options: CookieOptionsWithName };
 
@@ -42,4 +43,13 @@ const supabase: Handle = async ({ event, resolve }) => {
   });
 };
 
-export const handle: Handle = sequence(supabase);
+const paraglide: Handle = ({ event, resolve }) =>
+  paraglideMiddleware(event.request, ({ request, locale }) => {
+    event.request = request;
+    event.locals.locale = locale;
+    return resolve(event, {
+      transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale),
+    });
+  });
+
+export const handle: Handle = sequence(paraglide, supabase);

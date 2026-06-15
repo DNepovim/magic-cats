@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from '$lib/paraglide/messages';
   import Sparkles from './Sparkles.svelte';
 </script>
 
@@ -9,7 +10,7 @@
   <Sparkles />
 
   <div class="relative z-10 flex flex-col items-center gap-8">
-    <span class="badge-hot">🔥 THE WILD IS WAITING</span>
+    <span class="badge-hot">{m.tame_cta_badge()}</span>
 
     <div class="relative">
       <div class="starburst" style="width:340px;height:340px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
@@ -20,21 +21,20 @@
       class="title-shimmer leading-tight"
       style="font-family: var(--font-chunky); font-size: clamp(3rem, 9vw, 6rem);"
     >
-      Tame your cat
+      {m.tame_cta_title()}
     </h1>
 
     <p
       class="font-cursive max-w-lg text-xl sm:text-2xl"
       style="color: var(--color-cyan); text-shadow: 0 0 12px var(--color-cyan);"
     >
-      Catch the flying food. Drop it on a cat. The right offerings will earn her trust
-      forever.
+      {m.tame_cta_subtitle()}
     </p>
 
-    <a href="/tame" class="btn-magic zoom-pulse text-2xl">⚔️ TAME THE CAT ⚔️</a>
+    <a href="/tame" class="btn-magic zoom-pulse text-2xl">{m.tame_cta_button()}</a>
 
     <p class="font-retro text-xs blink" style="color: var(--color-lime)">
-      ▶▶ Click to begin ◀◀
+      {m.tame_cta_footer()}
     </p>
   </div>
 </section>

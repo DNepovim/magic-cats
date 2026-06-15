@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from '$lib/paraglide/messages';
   import { supabase } from '$lib/supabase/client';
 
   let loading = $state(false);
@@ -47,7 +48,7 @@
       />
     </svg>
   </span>
-  <span class="leading-none">{loading ? 'Redirecting…' : 'Sign in with Google'}</span>
+  <span class="leading-none">{loading ? m.login_button_loading() : m.login_button()}</span>
 </button>
 
 {#if errorMsg}

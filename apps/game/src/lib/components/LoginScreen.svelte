@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from '$lib/paraglide/messages';
   import GoogleLoginButton from './GoogleLoginButton.svelte';
   import Sparkles from './Sparkles.svelte';
 </script>
@@ -10,7 +11,7 @@
   <Sparkles />
 
   <div class="relative z-10 flex flex-col items-center gap-6">
-    <span class="badge-new">⚡ MEOW PORTAL ⚡</span>
+    <span class="badge-new">{m.login_badge()}</span>
 
     <div class="relative">
       <div class="starburst" style="width:300px;height:300px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
@@ -21,20 +22,20 @@
       class="title-shimmer leading-tight"
       style="font-family: var(--font-chunky); font-size: clamp(2.5rem, 8vw, 5rem);"
     >
-      Magic Cats
+      {m.site_title()}
     </h1>
 
     <p
       class="font-cursive max-w-md text-xl sm:text-2xl"
       style="color: var(--color-cyan); text-shadow: 0 0 12px var(--color-cyan);"
     >
-      Sign in to start taming your magical cat
+      {m.login_subtitle()}
     </p>
 
     <GoogleLoginButton />
 
     <p class="font-retro mt-3 text-xs" style="color: var(--color-silver); opacity:0.6">
-      Free • No credit card • Instant access
+      {m.login_perks()}
     </p>
   </div>
 </section>

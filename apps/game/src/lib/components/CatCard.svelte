@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { m } from '$lib/paraglide/messages';
+  import { getLocale } from '$lib/paraglide/runtime';
   import type { CatRow } from '$lib/supabase/types';
 
   const {
@@ -10,7 +12,7 @@
   } = $props();
 
   const formatted = $derived(
-    new Date(cat.domesticated_at).toLocaleDateString(undefined, {
+    new Date(cat.domesticated_at).toLocaleDateString(getLocale(), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -27,7 +29,7 @@
       class="flex w-full flex-col items-center gap-4 rounded-xl p-6"
       style="background: linear-gradient(145deg,#0a001f,#1a003a,#00101a);"
     >
-      <span class="badge-new">⭐ YOUR CAT ⭐</span>
+      <span class="badge-new">{m.cat_your_cat_badge()}</span>
 
       <div class="relative">
         <div
@@ -52,10 +54,10 @@
       </h2>
 
       <p class="font-cursive text-xl" style="color: var(--color-cyan);">
-        Tamed with {cat.domestication_points} pts of love
+        {m.cat_tamed_with({ points: cat.domestication_points })}
       </p>
       <p class="font-retro text-xs" style="color: var(--color-silver); opacity: 0.7;">
-        Domesticated on {formatted}
+        {m.cat_domesticated_on({ date: formatted })}
       </p>
     </div>
   </article>

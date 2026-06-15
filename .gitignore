@@ -8,6 +8,7 @@
 
 # paraglide compiled output
 **/src/paraglide/
+**/src/lib/paraglide/
 
 .yarn/
 

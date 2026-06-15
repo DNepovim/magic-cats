@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from '$lib/paraglide/messages';
   import type { CatEntity } from '$lib/game/types';
 
   const {
@@ -36,7 +37,7 @@
       style="background:linear-gradient(145deg,#0a001f,#1a003a,#00101a);"
     >
       <div class="flex flex-col items-center gap-4 text-center">
-        <span class="badge-new">✨ DOMESTICATED ✨</span>
+        <span class="badge-new">{m.modal_domesticated_badge()}</span>
 
         <div class="relative">
           <div
@@ -57,11 +58,11 @@
           class="title-shimmer"
           style="font-family:var(--font-chunky);font-size:clamp(1.8rem,5vw,2.4rem);line-height:1.1;"
         >
-          Name your cat
+          {m.modal_name_cat()}
         </h2>
 
         <p class="font-cursive text-lg" style="color:var(--color-cyan);">
-          She was tamed with {cat.points} points of magical food.
+          {m.modal_name_cat_subtitle({ points: cat.points })}
         </p>
 
         <form class="flex w-full flex-col gap-3" onsubmit={submit}>
@@ -70,7 +71,7 @@
             bind:value={name}
             required
             maxlength="32"
-            placeholder="e.g. Whiskers the Brave"
+            placeholder={m.modal_name_placeholder()}
             class="w-full rounded-lg px-4 py-3 outline-none"
             style="background:rgba(0,0,0,0.5);color:var(--color-silver);font-family:var(--font-pixel);font-size:1rem;border:2px solid var(--color-magic);box-shadow:0 0 8px rgba(155,0,255,0.3);"
           />
@@ -79,7 +80,7 @@
             class="btn-magic w-full text-lg disabled:opacity-60"
             disabled={submitting || name.trim().length < 1}
           >
-            {submitting ? 'Taming…' : '🐱 Adopt her 🐱'}
+            {submitting ? m.modal_adopting() : m.modal_adopt()}
           </button>
         </form>
 

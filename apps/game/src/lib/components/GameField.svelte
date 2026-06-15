@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { m } from '$lib/paraglide/messages';
   import {
     CAT_COUNT,
     CAT_RESPAWN_MS,
@@ -209,17 +210,17 @@
   <!-- HUD -->
   <div class="pointer-events-none absolute top-0 right-0 left-0 z-20 flex items-start justify-between p-4">
     <div class="flex flex-col gap-1">
-      <span class="font-retro text-xs" style="color:var(--color-lime)">[ TAMING IN PROGRESS ]</span>
+      <span class="font-retro text-xs" style="color:var(--color-lime)">{m.game_status()}</span>
       <span class="font-cursive text-2xl" style="color:var(--color-cyan);text-shadow:0 0 8px var(--color-cyan)">
-        Drag food onto a cat
+        {m.game_instruction()}
       </span>
     </div>
     <div
       class="rounded-lg px-3 py-2"
       style="background:rgba(8,0,26,0.7);border:2px solid var(--color-gold);box-shadow:0 0 10px var(--color-gold)"
     >
-      <p class="font-retro text-xs" style="color:var(--color-gold)">GOAL</p>
-      <p class="font-chunky text-2xl" style="color:var(--color-gold)">{THRESHOLD} pts</p>
+      <p class="font-retro text-xs" style="color:var(--color-gold)">{m.game_goal_label()}</p>
+      <p class="font-chunky text-2xl" style="color:var(--color-gold)">{THRESHOLD} {m.game_pts_unit()}</p>
     </div>
   </div>
 
@@ -234,7 +235,7 @@
   {#if availableImages.length === 0}
     <div class="absolute inset-0 flex items-center justify-center">
       <p class="font-retro animate-pulse text-sm" style="color:var(--color-cyan)">
-        Summoning cats…
+        {m.game_summoning()}
       </p>
     </div>
   {/if}

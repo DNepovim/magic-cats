@@ -6,6 +6,9 @@
   const progress = $derived(Math.min(1, cat.points / THRESHOLD));
 </script>
 
+<!-- numeric progress label keeps the original `N/THRESHOLD` form regardless of locale -->
+
+
 <div
   class="pointer-events-none absolute flex flex-col items-center gap-1 select-none"
   style="left:0;top:0;transform:translate({cat.x}px,{cat.y}px);width:{cat.size}px;"
