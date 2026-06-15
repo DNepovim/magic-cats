@@ -7,6 +7,7 @@ const players = [
   { rank: 3, name: 'Kelthos',          score: 75890,  tribe: '🔮 Shadow Claws',   seed: 'rank3', rowBg: 'linear-gradient(90deg, rgba(255,0,255,0.06), transparent)',           nameColor: 'var(--color-magenta)' },
   { rank: 4, name: 'Ruprd',            score: 64120,  tribe: '🌙 Moon Pride',     seed: 'rank4', rowBg: 'rgba(255,255,255,0.02)',                                              nameColor: 'var(--color-silver)'  },
   { rank: 5, name: 'StarPounce',       score: 52670,  tribe: '✨ Astral Felines', seed: 'rank5', rowBg: 'rgba(255,255,255,0.01)',                                              nameColor: 'var(--color-silver)'  },
+  { rank: 6, name: 'xX_v1ktor_MEOWster_69_Xx', score: 41230, tribe: '👹 Cursed Whiskers', seed: 'rank6', rowBg: 'rgba(255,255,255,0.01)',                                          nameColor: 'var(--color-silver)'  },
 ]
 ---
 
@@ -52,7 +53,7 @@ const players = [
                 <td class="px-3 py-3">
                   <div class="flex items-center gap-2">
                     <img
-                      src={`https://cataas.com/cat?width=36&height=36&seed=${player.seed}`}
+                      src={`/cats/${player.seed}.jpg`}
                       alt={player.name}
                       width="36"
                       height="36"

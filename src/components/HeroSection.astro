@@ -38,7 +38,7 @@ const marqueeText2 = '🐱 JOIN NOW 🐱 FREE TO PLAY 🐱 10,000+ PLAYERS 🐱 
       style={`top:${cat.top}; left:${cat.left}; transform: rotate(${cat.rotate}); animation: float ${cat.floatDuration} ease-in-out infinite;`}
     >
       <img
-        src={`https://cataas.com/cat?width=${cat.w}&height=${cat.h}&seed=${cat.seed}`}
+        src={`/cats/${cat.seed}.jpg`}
         alt=""
         width={cat.w}
         height={cat.h}
@@ -65,7 +65,7 @@ const marqueeText2 = '🐱 JOIN NOW 🐱 FREE TO PLAY 🐱 10,000+ PLAYERS 🐱 
     <div class="relative">
       <div class="starburst" style="width:300px; height:300px; top:50%; left:50%; transform:translate(-50%,-50%) rotate(0deg);"></div>
       <img
-        src="https://cataas.com/cat?width=220&height=220&seed=main-hero"
+        src="/cats/main-hero.jpg"
         alt={m.site_title()}
         width="220"
         height="220"
