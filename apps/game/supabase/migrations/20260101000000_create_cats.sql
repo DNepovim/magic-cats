@@ -1,8 +1,12 @@
 -- Magic Cats: cats table + RLS
-create extension if not exists "uuid-ossp";
+--
+-- Uses gen_random_uuid() (built into Postgres 13+) rather than uuid-ossp's
+-- uuid_generate_v4(). On Supabase cloud uuid-ossp is installed into the
+-- `extensions` schema, which is not on the migration session's search_path, so
+-- the unqualified call fails with 42883 there while working locally.
 
 create table if not exists public.cats (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   owner_user_id uuid not null references auth.users(id) on delete cascade,
   name text not null check (char_length(name) between 1 and 32),
   image_url text not null,
