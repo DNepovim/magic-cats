@@ -38,4 +38,9 @@ pnpm-debug.log*
 # turborepo
 **/.turbo
 
+# supabase CLI artifacts
+**/supabase/.branches
+**/supabase/.temp
+**/supabase/.env
+
 .eslintcache
