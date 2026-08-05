@@ -26,9 +26,17 @@ export const spawnCat = (
   };
 };
 
+export const randomFoodVelocity = (): { vx: number; vy: number } => {
+  const speed = rand(FOOD_SPEED_RANGE[0], FOOD_SPEED_RANGE[1]);
+  return {
+    vx: speed * randSign() * 0.6,
+    vy: speed * randSign() * 0.6,
+  };
+};
+
 export const spawnFood = (bounds: { width: number; height: number }): FoodEntity => {
   const type: FoodType = pickRandomFoodType();
-  const speed = rand(FOOD_SPEED_RANGE[0], FOOD_SPEED_RANGE[1]);
+  const { vx, vy } = randomFoodVelocity();
   return {
     id: uid(),
     typeId: type.id,
@@ -38,8 +46,8 @@ export const spawnFood = (bounds: { width: number; height: number }): FoodEntity
     color: type.color,
     x: rand(20, bounds.width - type.size - 20),
     y: rand(20, bounds.height - type.size - 20),
-    vx: speed * randSign() * 0.6,
-    vy: speed * randSign() * 0.6,
+    vx,
+    vy,
   };
 };
 

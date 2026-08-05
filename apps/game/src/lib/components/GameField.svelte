@@ -12,6 +12,7 @@
     fetchCatImageUrls,
     intersects,
     isOutOfBounds,
+    randomFoodVelocity,
     spawnCat,
     spawnFood,
     tickEntity,
@@ -165,8 +166,9 @@
         domesticatedCat = updatedCat;
       }
     } else {
-      foods = foods.filter((f) => f.id !== droppedFood.id);
-      setTimeout(respawnFood, FOOD_RESPAWN_MS);
+      // miss — let the food keep flying from where it was dropped
+      const { vx, vy } = randomFoodVelocity();
+      foods = foods.map((f) => (f.id === droppedFood.id ? { ...f, vx, vy } : f));
     }
   }
 
