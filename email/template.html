@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="{{LANG}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <!-- Tell clients this design is already dark, so they don't invert it. -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
+    <title>{{SUBJECT}}</title>
+    <!--[if mso]>
+      <style>
+        body, table, td, a { font-family: Georgia, serif !important; }
+      </style>
+    <![endif]-->
+  </head>
+  <body
+    style="margin:0; padding:0; width:100%; background-color:#08001a; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;"
+  >
+    <!-- Preheader: the grey preview text next to the subject in the inbox. -->
+    <div
+      style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;"
+    >
+      {{PREHEADER}}
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#08001a;">
+      <tr>
+        <td align="center" style="padding:24px 8px;">
+          <!-- Outlook ignores max-width, so it gets a fixed-width ghost table;
+               everyone else gets a fluid table that shrinks on phones. -->
+          <!--[if mso]>
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td>
+          <![endif]-->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+            <!-- Wordmark -->
+            <tr>
+              <td align="center" style="padding:8px 0 20px 0;">
+                <div
+                  style="font-family:'Cinzel Decorative', Georgia, 'Times New Roman', serif; font-size:34px; line-height:40px; font-weight:bold; color:#ffd700; letter-spacing:1px;"
+                >
+                  Magic Cats
+                </div>
+                <div
+                  style="font-family:'Courier New', Courier, monospace; font-size:11px; line-height:16px; color:#00ffff; letter-spacing:2px; padding-top:6px;"
+                >
+                  {{KICKER}}
+                </div>
+              </td>
+            </tr>
+
+            <!-- Card -->
+            <tr>
+              <td
+                style="background-color:#120030; border:2px solid #9b00ff; border-radius:12px; padding:28px 20px;"
+              >
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td
+                      style="font-family:Georgia, 'Times New Roman', serif; font-size:17px; line-height:26px; color:#c0c0c0;"
+                    >
+                      <p style="margin:0 0 18px 0; font-size:15px; color:#00ffff;">
+                        {{GREETING}}
+                      </p>
+
+                      {{BODY}}
+                    </td>
+                  </tr>
+
+                  <!-- Bulletproof CTA -->
+                  <tr>
+                    <td align="center" style="padding:28px 0 8px 0;">
+                      <!--[if mso]>
+                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                          href="{{CTA_URL}}" style="height:48px; v-text-anchor:middle; width:280px;" arcsize="20%"
+                          strokecolor="#ffd700" fillcolor="#9b00ff">
+                          <w:anchorlock/>
+                          <center style="color:#ffffff; font-family:Georgia, serif; font-size:17px; font-weight:bold;">
+                            {{CTA_LABEL}}
+                          </center>
+                        </v:roundrect>
+                      <![endif]-->
+                      <!--[if !mso]><!-- -->
+                      <!-- Padding-based rather than fixed-width so it shrinks
+                           to fit a 320px screen. -->
+                      <a
+                        href="{{CTA_URL}}"
+                        style="display:inline-block; background-color:#9b00ff; border:2px solid #ffd700; border-radius:10px; color:#ffffff; font-family:Georgia,'Times New Roman',serif; font-size:17px; font-weight:bold; line-height:22px; padding:12px 22px; text-align:center; text-decoration:none; -webkit-text-size-adjust:none;"
+                        >{{CTA_LABEL}}</a
+                      >
+                      <!--<![endif]-->
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td align="center" style="padding:22px 12px 8px 12px;">
+                <div
+                  style="font-family:'Courier New', Courier, monospace; font-size:11px; line-height:18px; color:#c0c0c0; opacity:0.75;"
+                >
+                  {{FOOTER}}
+                </div>
+                <div
+                  style="font-family:'Courier New', Courier, monospace; font-size:11px; line-height:18px; padding-top:10px;"
+                >
+                  <a href="{{UNSUBSCRIBE_URL}}" style="color:#ff00ff; text-decoration:underline;"
+                    >{{UNSUBSCRIBE_LABEL}}</a
+                  >
+                </div>
+              </td>
+            </tr>
+          </table>
+          <!--[if mso]>
+            </td></tr></table>
+          <![endif]-->
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -12,7 +12,8 @@
     "lint:fix": "turbo run lint:fix",
     "format:check": "turbo run format:check",
     "format:write": "turbo run format:write",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "email:build": "node email/build.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.0"
