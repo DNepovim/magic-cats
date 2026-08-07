@@ -25,18 +25,18 @@
 </script>
 
 <div
-  class="fixed inset-0 z-40 flex items-center justify-center px-4"
+  class="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-4"
   style="background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);"
 >
   <div
-    class="relative w-full max-w-md overflow-hidden rounded-2xl p-1"
+    class="relative flex h-full w-full flex-col overflow-hidden rounded-2xl p-1 sm:h-auto sm:max-w-md"
     style="background:conic-gradient(from var(--angle), var(--color-magic), var(--color-magenta), var(--color-cyan), var(--color-gold), var(--color-magic));animation:border-rotate 2s linear infinite;"
   >
     <div
-      class="rounded-xl p-6"
+      class="flex-1 overflow-y-auto rounded-xl p-6"
       style="background:linear-gradient(145deg,#0a001f,#1a003a,#00101a);"
     >
-      <div class="flex flex-col items-center gap-4 text-center">
+      <div class="flex min-h-full flex-col items-center justify-center gap-4 text-center">
         <span class="badge-new">{m.modal_domesticated_badge()}</span>
 
         <div class="relative">
