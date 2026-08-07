@@ -1,5 +1,10 @@
 export const THRESHOLD = 100;
 
+// Cats a single user may own at once. Enforced server-side in
+// src/routes/api/cats/+server.ts and src/routes/tame/+page.server.ts — there is
+// no DB constraint, so raising this is a one-line change.
+export const MAX_CATS = 3;
+
 export const CAT_COUNT = 5;
 export const FOOD_COUNT = 8;
 

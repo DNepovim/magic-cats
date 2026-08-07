@@ -13,7 +13,7 @@
   <TameCtaScreen />
 {:else if data.state === 'dashboard'}
   <Dashboard
-    myCat={data.myCat}
+    myCats={data.myCats}
     otherCats={data.otherCats}
     userEmail={data.user?.email ?? null}
   />

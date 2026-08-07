@@ -8,7 +8,7 @@
     variant = 'compact',
   }: {
     cat: Pick<CatRow, 'id' | 'name' | 'image_url' | 'domesticated_at' | 'domestication_points'>;
-    variant?: 'hero' | 'compact';
+    variant?: 'hero' | 'compact' | 'tile';
   } = $props();
 
   const formatted = $derived(
@@ -60,6 +60,29 @@
         {m.cat_domesticated_on({ date: formatted })}
       </p>
     </div>
+  </article>
+{:else if variant === 'tile'}
+  <article
+    class="flex w-24 shrink-0 flex-col items-center gap-2 rounded-xl p-2"
+    style="background: rgba(8,0,26,0.6); border: 1px solid var(--color-magic);"
+  >
+    <img
+      src={cat.image_url}
+      alt={cat.name}
+      width="64"
+      height="64"
+      class="rounded-full object-cover"
+      style="width:64px;height:64px;border:2px solid var(--color-cyan);box-shadow:0 0 6px var(--color-cyan);"
+    />
+    <p
+      class="w-full truncate text-center font-bold"
+      style="font-family: var(--font-display); color: var(--color-gold); font-size: 0.8rem;"
+    >
+      {cat.name}
+    </p>
+    <p class="font-retro text-[0.5rem]" style="color: var(--color-silver); opacity: 0.7;">
+      {cat.domestication_points} pts
+    </p>
   </article>
 {:else}
   <article

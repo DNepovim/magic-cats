@@ -1,4 +1,4 @@
-import { THRESHOLD } from '$lib/game/constants';
+import { MAX_CATS, THRESHOLD } from '$lib/game/constants';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -32,6 +32,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   if (!isHttpUrl(imageUrl)) throw error(400, 'image_url must be a valid URL');
   if (points < THRESHOLD) throw error(400, `Cat is not domesticated yet (${points}/${THRESHOLD})`);
 
+  const { count, error: countError } = await locals.supabase
+    .from('cats')
+    .select('id', { count: 'exact', head: true })
+    .eq('owner_user_id', locals.user.id);
+
+  if (countError) throw error(500, countError.message);
+  if ((count ?? 0) >= MAX_CATS) throw error(409, `You already have ${MAX_CATS} cats`);
+
   const { data, error: dbError } = await locals.supabase
     .from('cats')
     .insert({
@@ -43,10 +51,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     .select('*')
     .single();
 
-  if (dbError) {
-    if (dbError.code === '23505') throw error(409, 'You already have a cat');
-    throw error(500, dbError.message);
-  }
+  if (dbError) throw error(500, dbError.message);
 
   return json({ cat: data }, { status: 201 });
 };
