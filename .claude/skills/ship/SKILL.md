@@ -44,10 +44,14 @@ If any migration files appear (new `??` or modified `M`), ask with
 Two caveats specific to this repo:
 
 - `supabase db push` targets whichever project `supabase link --project-ref <ref>`
-  last pointed at. **As of 2026-08-05 no cloud project is linked** — the previous
-  ref (`xsxkhtsyceyadtljgrax`) was deleted and returns NXDOMAIN. Until a
-  replacement is created and linked, "push now" cannot succeed; say so rather than
-  running it blind.
+  last pointed at. The CLI is linked to `xsxkhtsyceyadtljgrax` ("Magic Cats").
+  Always run `supabase migration list` first — it prints local vs remote versions,
+  so you can tell the user exactly which migrations the push would apply — and
+  `supabase db push --dry-run` to confirm before writing to production.
+- `supabase db dump` needs Docker; `supabase migration list` and
+  `supabase inspect db …` connect directly, so they still work when Docker is
+  down. Use `inspect db index-stats --linked` to sanity-check a schema change
+  against prod without spinning up a container.
 - Every migration that creates a table must also `grant` on it — RLS policies do
   not imply table privileges here, and a missing grant fails every query with
   `42501`. See `apps/game/README.md`.
