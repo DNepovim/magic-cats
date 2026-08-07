@@ -56,5 +56,17 @@
   "modal_benefit_3_title": "Globálny chat",
   "modal_benefit_3_desc": "Chatuj s hráčmi po celom svete",
   "modal_benefit_4_title": "Magické karty",
-  "modal_benefit_4_desc": "Zbieraj a obchoduj so vzácnymi mačacími kartami"
+  "modal_benefit_4_desc": "Zbieraj a obchoduj so vzácnymi mačacími kartami",
+  "countdown_label": "⏳ RÍŠA SA OTVORÍ O ⏳",
+  "countdown_days": "DNÍ",
+  "countdown_hours": "HODÍN",
+  "countdown_minutes": "MINÚT",
+  "countdown_seconds": "SEKÚND",
+  "teaser_hero": "Brány sú zatiaľ zavreté. Nabrús pazúry — ríša sa otvorí 17. augusta.",
+  "teaser_join": "Nechaj nám e-mail a dozvieš sa prvý, keď sa brány otvoria.",
+  "teaser_soon_badge": "🔒 ZATIAĽ ZAVRETÉ 🔒",
+  "live_badge": "🎉 RÍŠA JE OTVORENÁ 🎉",
+  "live_hero": "Brány sú otvorené. Tvoja prvá mačka čaká, kým ju skrotíš.",
+  "live_join": "Koniec čakania — vstúp a získaj svoj kmeň.",
+  "play_cta": "Vstúpiť do Ríše"
 }

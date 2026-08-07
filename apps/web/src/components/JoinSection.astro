@@ -1,5 +1,8 @@
 ---
+import Countdown from '@/components/Countdown.astro'
+import ReleaseGate from '@/components/ReleaseGate.astro'
 import * as m from '@/paraglide/messages'
+import { GAME_URL } from '@/utils/release'
 ---
 
 <section
@@ -38,31 +41,47 @@ import * as m from '@/paraglide/messages'
       {m.join_title()}
     </h2>
 
-    <p class="font-cursive text-2xl" style="color: var(--color-cyan); text-shadow: 0 0 10px var(--color-cyan);">
-      {m.join_subtitle()}
-    </p>
+    <ReleaseGate>
+      <div slot="before" class="flex flex-col items-center gap-6 w-full">
+        <p class="font-cursive text-2xl" style="color: var(--color-cyan); text-shadow: 0 0 10px var(--color-cyan);">
+          {m.join_subtitle()}
+        </p>
 
-    <p class="font-marker text-lg blink" style="color: var(--color-magenta); transform: rotate(-1deg);">
-      ⚠️ Limited spots available! ⚠️
-    </p>
+        <p class="font-marker text-lg" style="color: var(--color-magenta); transform: rotate(-1deg);">
+          {m.teaser_join()}
+        </p>
 
-    <form
-      class="flex flex-col sm:flex-row gap-3 w-full mt-2"
-      method="POST"
-      action="#"
-    >
-      <input
-        type="email"
-        name="email"
-        placeholder={m.join_email_placeholder()}
-        required
-        class="flex-1 rounded-xl px-4 py-3 outline-none"
-        style="background: rgba(18,0,48,0.9); color: var(--color-silver); font-family: var(--font-pixel); font-size: 0.95rem; border: 2px solid var(--color-magic); box-shadow: 0 0 10px var(--color-magic)44, inset 0 0 10px rgba(0,0,0,0.5);"
-      />
-      <button type="submit" class="btn-magic text-lg px-6 zoom-pulse">
-        🐱 {m.join_cta()}
-      </button>
-    </form>
+        <Countdown />
+
+        <form
+          class="flex flex-col sm:flex-row gap-3 w-full mt-2"
+          method="POST"
+          action="#"
+        >
+          <input
+            type="email"
+            name="email"
+            placeholder={m.join_email_placeholder()}
+            required
+            class="flex-1 rounded-xl px-4 py-3 outline-none"
+            style="background: rgba(18,0,48,0.9); color: var(--color-silver); font-family: var(--font-pixel); font-size: 0.95rem; border: 2px solid var(--color-magic); box-shadow: 0 0 10px var(--color-magic)44, inset 0 0 10px rgba(0,0,0,0.5);"
+          />
+          <button type="submit" class="btn-magic text-lg px-6 zoom-pulse">
+            🐱 {m.join_cta()}
+          </button>
+        </form>
+      </div>
+
+      <div slot="after" class="flex flex-col items-center gap-6">
+        <p class="font-cursive text-2xl" style="color: var(--color-cyan); text-shadow: 0 0 10px var(--color-cyan);">
+          {m.live_join()}
+        </p>
+
+        <a href={GAME_URL} class="btn-magic text-2xl px-8 zoom-pulse">
+          🐱 {m.play_cta()} 🐱
+        </a>
+      </div>
+    </ReleaseGate>
 
     <div class="flex gap-4 flex-wrap justify-center mt-2">
       <span class="font-retro text-xs" style="color: var(--color-lime);">✓ FREE</span>

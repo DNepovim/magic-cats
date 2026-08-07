@@ -56,5 +56,17 @@
   "modal_benefit_3_title": "Global Chat",
   "modal_benefit_3_desc": "Chat with players worldwide",
   "modal_benefit_4_title": "Magic Cards",
-  "modal_benefit_4_desc": "Collect & trade rare cat cards"
+  "modal_benefit_4_desc": "Collect & trade rare cat cards",
+  "countdown_label": "⏳ THE REALM OPENS IN ⏳",
+  "countdown_days": "DAYS",
+  "countdown_hours": "HOURS",
+  "countdown_minutes": "MINUTES",
+  "countdown_seconds": "SECONDS",
+  "teaser_hero": "The gates are still sealed. Sharpen your claws — the realm opens 17 August.",
+  "teaser_join": "Leave your email and be the first to know the moment the gates swing open.",
+  "teaser_soon_badge": "🔒 NOT YET OPEN 🔒",
+  "live_badge": "🎉 THE REALM IS OPEN 🎉",
+  "live_hero": "The gates are open. Your first cat is waiting to be tamed.",
+  "live_join": "No more waiting — step in and claim your tribe.",
+  "play_cta": "Enter the Realm"
 }

@@ -1,0 +1,24 @@
+---
+/**
+ * Renders both sides of the launch gate and lets the client pick.
+ *
+ * The site is statically prerendered, so build time decides the markup that
+ * ships. That is fine for a rebuild after launch, but a visitor sitting on the
+ * page at 12:00 — or loading a CDN copy built before launch — needs the switch
+ * to happen without a deploy. So both slots are always in the HTML, the build
+ * marks the currently-correct one visible, and gate.ts corrects it on load and
+ * flips it live when the moment passes.
+ */
+import { isReleased } from '@/utils/release'
+
+const released = isReleased()
+---
+
+<div data-release-gate>
+  <div data-gate="before" hidden={released}>
+    <slot name="before" />
+  </div>
+  <div data-gate="after" hidden={!released}>
+    <slot name="after" />
+  </div>
+</div>

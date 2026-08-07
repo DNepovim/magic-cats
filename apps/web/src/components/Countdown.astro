@@ -1,0 +1,48 @@
+---
+import * as m from '@/paraglide/messages'
+import { RELEASE_AT } from '@/utils/release'
+
+const units = [
+  { key: 'days', label: m.countdown_days() },
+  { key: 'hours', label: m.countdown_hours() },
+  { key: 'minutes', label: m.countdown_minutes() },
+  { key: 'seconds', label: m.countdown_seconds() },
+] as const
+
+// Rendered as the server's best guess; countdown.ts overwrites it on load.
+const remaining = Math.max(0, RELEASE_AT.getTime() - Date.now())
+const initial: Record<(typeof units)[number]['key'], number> = {
+  days: Math.floor(remaining / 86_400_000),
+  hours: Math.floor(remaining / 3_600_000) % 24,
+  minutes: Math.floor(remaining / 60_000) % 60,
+  seconds: Math.floor(remaining / 1000) % 60,
+}
+---
+
+<div class="flex flex-col items-center gap-3" data-countdown>
+  <p class="font-retro text-xs blink" style="color: var(--color-lime);">
+    {m.countdown_label()}
+  </p>
+
+  <div class="flex gap-2 sm:gap-4">
+    {
+      units.map(({ key, label }) => (
+        <div
+          class="flex min-w-[4.5rem] flex-col items-center rounded-xl px-3 py-2 sm:min-w-[6rem]"
+          style="background: rgba(8,0,26,0.75); border: 2px solid var(--color-magic); box-shadow: 0 0 12px rgba(155,0,255,0.5);"
+        >
+          <span
+            class="font-chunky tabular-nums"
+            style="font-size: clamp(1.8rem, 6vw, 3rem); color: var(--color-gold); text-shadow: 0 0 12px var(--color-gold);"
+            data-countdown-unit={key}
+          >
+            {String(initial[key]).padStart(2, '0')}
+          </span>
+          <span class="font-retro text-[0.5rem] sm:text-[0.6rem]" style="color: var(--color-cyan);">
+            {label}
+          </span>
+        </div>
+      ))
+    }
+  </div>
+</div>

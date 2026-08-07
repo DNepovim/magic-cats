@@ -1,5 +1,8 @@
 ---
+import Countdown from '@/components/Countdown.astro'
+import ReleaseGate from '@/components/ReleaseGate.astro'
 import * as m from '@/paraglide/messages'
+import { GAME_URL } from '@/utils/release'
 
 const sparkles = Array.from({ length: 40 }, (_, i) => ({
   top: `${(i * 7 + 3) % 95}%`,
@@ -90,17 +93,32 @@ const marqueeText2 = '🐱 JOIN NOW 🐱 FREE TO PLAY 🐱 10,000+ PLAYERS 🐱 
       {m.hero_subtitle()}
     </p>
 
-    <div class="flex flex-wrap justify-center gap-4 items-center">
-      <span class="pixel-text text-lg blink" style="color: var(--color-lime);">▶▶ {m.play_now()} ◀◀</span>
-      <span class="font-retro text-xs" style="color: var(--color-silver);">10,000+ 🐱</span>
-    </div>
+    <ReleaseGate>
+      <div slot="before" class="flex flex-col items-center gap-6">
+        <span class="badge-hot">{m.teaser_soon_badge()}</span>
 
-    <div class="flex flex-wrap gap-4 justify-center items-center">
-      <a href="#join" class="btn-magic wobble text-xl">
-        ⚔️ {m.play_now()} ⚔️
-      </a>
-      <span class="badge-hot">🔥 HOT</span>
-    </div>
+        <p class="font-marker text-lg max-w-lg" style="color: var(--color-magenta); transform: rotate(-1deg);">
+          {m.teaser_hero()}
+        </p>
+
+        <Countdown />
+      </div>
+
+      <div slot="after" class="flex flex-col items-center gap-6">
+        <span class="badge-new text-base px-4 py-2">{m.live_badge()}</span>
+
+        <p class="font-marker text-lg max-w-lg" style="color: var(--color-lime); transform: rotate(-1deg);">
+          {m.live_hero()}
+        </p>
+
+        <div class="flex flex-wrap gap-4 justify-center items-center">
+          <a href={GAME_URL} class="btn-magic wobble text-xl">
+            ⚔️ {m.play_cta()} ⚔️
+          </a>
+          <span class="badge-hot">🔥 HOT</span>
+        </div>
+      </div>
+    </ReleaseGate>
 
     <div class="flex gap-2 mt-2">
       {'⭐⭐⭐⭐⭐'.split('').map(s => (

@@ -56,5 +56,17 @@
   "modal_benefit_3_title": "Globális chat",
   "modal_benefit_3_desc": "Csevegj játékosokkal világszerte",
   "modal_benefit_4_title": "Mágikus kártyák",
-  "modal_benefit_4_desc": "Gyűjts és cserélj ritka macska kártyákat"
+  "modal_benefit_4_desc": "Gyűjts és cserélj ritka macska kártyákat",
+  "countdown_label": "⏳ A BIRODALOM NYÍLIK ⏳",
+  "countdown_days": "NAP",
+  "countdown_hours": "ÓRA",
+  "countdown_minutes": "PERC",
+  "countdown_seconds": "MÁSODPERC",
+  "teaser_hero": "A kapuk még zárva. Élesítsd a karmaid — a birodalom augusztus 17-én nyílik.",
+  "teaser_join": "Hagyd itt az e-mail-címed, és elsőként tudod meg, mikor nyílnak a kapuk.",
+  "teaser_soon_badge": "🔒 MÉG ZÁRVA 🔒",
+  "live_badge": "🎉 A BIRODALOM NYITVA 🎉",
+  "live_hero": "A kapuk nyitva. Az első macskád arra vár, hogy megszelídítsd.",
+  "live_join": "Nincs több várakozás — lépj be és szerezd meg a törzsed.",
+  "play_cta": "Belépés a Birodalomba"
 }
