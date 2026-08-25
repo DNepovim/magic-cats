@@ -13,7 +13,13 @@
     "format:check": "turbo run format:check",
     "format:write": "turbo run format:write",
     "typecheck": "turbo run typecheck",
-    "email:build": "node email/build.mjs"
+    "email:build": "node email/build.mjs",
+    "db:start": "pnpm -F game db:start",
+    "db:stop": "pnpm -F game db:stop",
+    "db:restart": "pnpm -F game db:restart",
+    "db:status": "pnpm -F game db:status",
+    "db:reset": "pnpm -F game db:reset",
+    "db:studio": "pnpm -F game db:studio"
   },
   "devDependencies": {
     "turbo": "^2.5.0"

@@ -13,7 +13,15 @@
     "format:check": "prettier --check 'src/**/*.{ts,svelte,js,json,css}'",
     "format:write": "prettier --write --cache 'src/**/*.{ts,svelte,js,json,css}'",
     "typecheck": "pnpm paraglide && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "machine-translate": "inlang machine translate --project project.inlang"
+    "machine-translate": "inlang machine translate --project project.inlang",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:restart": "supabase stop && supabase start",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:migration": "supabase migration new",
+    "db:push": "supabase db push",
+    "db:studio": "open http://127.0.0.1:54323"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
