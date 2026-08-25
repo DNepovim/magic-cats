@@ -82,6 +82,7 @@ on conflict (id) do nothing;
 -- Their cats — these show up in the "Other Tribes" sidebar on the dashboard
 -- ──────────────────────────────────────────────────────────────────────────
 insert into public.cats (
+  id,
   owner_user_id,
   name,
   image_url,
@@ -89,6 +90,7 @@ insert into public.cats (
   domesticated_at
 ) values
   (
+    'ca700001-0000-4000-8000-000000000001',
     '11111111-1111-1111-1111-111111111111',
     'Shadow Whiskers',
     'https://cdn2.thecatapi.com/images/MTk3OTg4OA.jpg',
@@ -96,6 +98,7 @@ insert into public.cats (
     now() - interval '6 days'
   ),
   (
+    'ca700002-0000-4000-8000-000000000002',
     '22222222-2222-2222-2222-222222222222',
     'Storm Paws',
     'https://cdn2.thecatapi.com/images/bje.jpg',
@@ -103,6 +106,7 @@ insert into public.cats (
     now() - interval '4 days'
   ),
   (
+    'ca700003-0000-4000-8000-000000000003',
     '33333333-3333-3333-3333-333333333333',
     'Astral Mews',
     'https://cdn2.thecatapi.com/images/3cr.jpg',
@@ -110,10 +114,11 @@ insert into public.cats (
     now() - interval '1 day'
   ),
   (
+    'ca700004-0000-4000-8000-000000000004',
     '44444444-4444-4444-4444-444444444444',
     'Moon Tail',
     'https://cdn2.thecatapi.com/images/9ic.jpg',
     102,
     now() - interval '3 hours'
   )
-on conflict (owner_user_id) do nothing;
+on conflict (id) do nothing;

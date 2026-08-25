@@ -62,16 +62,33 @@ Schema changes flow `local → dev → prod` via the migration files in `supabas
 ## Daily workflow
 
 ```bash
-# every dev session
-cd apps/game
-supabase start             # boots Postgres + Auth + Studio + Inbucket in Docker
-cd ../..
+# every dev session — from the repo root, no `cd` needed
+pnpm db:start              # boots Postgres + Auth + Studio + Inbucket in Docker
 pnpm -F game dev           # SvelteKit on :5173
 # ... develop ...
 pkill -f 'vite dev'
-cd apps/game
-supabase stop              # frees ~1.5 GB RAM
+pnpm db:stop               # frees ~1.5 GB RAM
 ```
+
+The `db:*` scripts are thin wrappers around the Supabase CLI that run it inside
+`apps/game/` (where `supabase/config.toml` lives), so they work from anywhere in the repo.
+Every command below can still be run directly as `supabase <cmd>` from `apps/game/`.
+
+| Script (repo root) | Runs | Notes |
+|---|---|---|
+| `pnpm db:start` | `supabase start` | boots the Docker stack |
+| `pnpm db:stop` | `supabase stop` | keeps the data volume |
+| `pnpm db:restart` | `supabase stop && supabase start` | required after editing `.env` — GoTrue reads it at container creation |
+| `pnpm db:status` | `supabase status` | prints URLs + keys |
+| `pnpm db:reset` | `supabase db reset` | drops the local DB, re-runs all migrations + `seed.sql` |
+| `pnpm db:studio` | opens http://127.0.0.1:54323 | |
+
+Two more live only in `apps/game` (`pnpm -F game …`) because they touch migrations:
+`db:migration <name>` (`supabase migration new`) and `db:push` (`supabase db push`, which
+writes to whichever cloud project is currently linked).
+
+If `supabase start` reports `already running` while a container is `Exited` — typically
+after a Docker restart — `pnpm db:restart` clears it.
 
 Useful local URLs while `supabase start` is running:
 
@@ -81,6 +98,43 @@ Useful local URLs while `supabase start` is running:
 | Supabase Studio (DB UI) | http://127.0.0.1:54323 |
 | Inbucket (email catcher) | http://127.0.0.1:54324 |
 | Supabase REST API | http://127.0.0.1:54321 |
+
+## Cat care model
+
+A cat is not stored as "how she is right now" — she is stored as a snapshot plus
+the moment it was taken:
+
+| Column | Meaning |
+|---|---|
+| `satiety`, `happiness` | 0–100, as of `state_at` |
+| `state_at` | when that snapshot was true |
+| `illness` | `sniffles` \| `earmites` \| `furball`, or null |
+| `taste_seed` | fixed per cat; decides how she rates each food |
+
+`simulate()` in `src/lib/game/care.ts` replays a cat forward from `state_at` in
+five-minute steps, so **nothing has to tick server-side** and an untouched cat
+still gets hungry. Illness onset is rolled inside that replay from a PRNG seeded
+by the cat id and the step index — deterministic, so the browser and the API
+derive exactly the same cat from the same row without the server writing on
+every page load. Every action (feed, medicine, play, a cat-vs-cat game)
+simulates up to `now`, applies its effect, and stores a fresh snapshot.
+
+The loop:
+
+- Satiety falls ~3/hour, doubled while ill.
+- Above `SATIETY_THRESHOLD` (50) happiness climbs 2/hour; below it, it falls
+  4/hour. Illness costs another 3/hour.
+- Food raises satiety, scaled by that cat's taste (0.5×–1.6×, from
+  `tasteFor()`); dainties barely feed her but lift her mood a lot.
+- Playing with her is free happiness on a 30-minute cooldown.
+- Low satiety *and* low happiness raise the hourly chance of illness. Curing
+  needs the matching medicine **and** satiety ≥ `CURE_SATIETY` (80).
+
+Food and medicine are items, not cooldowns: they come from supply runs
+(`/supply`) and live in `user_items`. A run is validated rather than trusted —
+the server stores a seed, the client derives the identical flight plan from it
+(`scheduleFor()`), and on hand-in the server re-derives the schedule and grants
+only indices that were genuinely in the air, each at most once.
 
 ## Auth in local dev
 

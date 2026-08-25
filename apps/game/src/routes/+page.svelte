@@ -15,6 +15,10 @@
   <Dashboard
     myCats={data.myCats}
     otherCats={data.otherCats}
+    breedings={data.breedings}
+    breedingByCat={data.breedingByCat}
+    games={data.games}
+    stock={data.stock}
     userEmail={data.user?.email ?? null}
   />
 {/if}

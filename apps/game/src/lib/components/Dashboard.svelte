@@ -1,22 +1,41 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
+  import { formatCountdown, gameCooldownLeft } from '$lib/game/care';
   import { MAX_CATS } from '$lib/game/constants';
   import { m } from '$lib/paraglide/messages';
   import { supabase } from '$lib/supabase/client';
-  import type { CatRow } from '$lib/supabase/types';
+  import type { CatBreeding, CatRow, DashboardBreeding, GameFeedItem } from '$lib/supabase/types';
   import CatCard from './CatCard.svelte';
+  import CatHero from './CatHero.svelte';
+  import PantrySidebar from './PantrySidebar.svelte';
   import Sparkles from './Sparkles.svelte';
 
   const {
     myCats,
     otherCats,
+    breedings,
+    breedingByCat,
+    games,
+    stock,
     userEmail,
   }: {
     myCats: CatRow[];
     otherCats: Pick<
       CatRow,
-      'id' | 'name' | 'image_url' | 'domesticated_at' | 'domestication_points'
+      | 'id'
+      | 'name'
+      | 'image_url'
+      | 'domesticated_at'
+      | 'domestication_points'
+      | 'satiety'
+      | 'happiness'
+      | 'state_at'
+      | 'illness'
     >[];
+    breedings: DashboardBreeding[];
+    breedingByCat: Record<string, CatBreeding>;
+    games: GameFeedItem[];
+    stock: Record<string, number>;
     userEmail: string | null;
   } = $props();
 
@@ -31,6 +50,16 @@
   // selection has to fall back to a cat that still exists.
   const selectedCat = $derived(myCats.find((cat) => cat.id === selectedId) ?? myCats[0]);
   const isFull = $derived(myCats.length >= MAX_CATS);
+  // Ticks so the play button re-enables itself when the nap is over.
+  let now = $state(Date.now());
+  $effect(() => {
+    const id = setInterval(() => (now = Date.now()), 1000);
+    return () => clearInterval(id);
+  });
+  const playLeft = $derived(selectedCat ? gameCooldownLeft(selectedCat, now) : 0);
+
+  const gameKindLabel = (kind: GameFeedItem['kind']) =>
+    ({ chase: m.play_kind_chase(), wrestle: m.play_kind_wrestle(), yarn: m.play_kind_yarn() })[kind];
 
   async function signOut() {
     signingOut = true;
@@ -39,10 +68,91 @@
     await goto('/');
   }
 
+  // The release confirmation is inline rather than an overlay, but Escape
+  // should back out of it like it does out of the real modals.
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && confirmingRelease && !releasing) confirmingRelease = false;
+  };
+
   function select(id: string) {
     selectedId = id;
     confirmingRelease = false;
     releaseError = null;
+  }
+
+  let caring = $state(false);
+  let careError = $state<string | null>(null);
+  let lastGame = $state<string | null>(null);
+  let playing = $state(false);
+
+  const post = async (url: string, payload: unknown, fallback: string) => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      throw new Error(body?.message ?? fallback);
+    }
+    return res.json() as Promise<{ opponent_name?: string; game?: { winner_cat_id: string } }>;
+  };
+
+  async function give(itemId: string) {
+    if (!selectedCat) return;
+    caring = true;
+    careError = null;
+    lastGame = null;
+    try {
+      await post(`/api/cats/${selectedCat.id}/give`, { item_id: itemId }, m.care_failed());
+      await invalidateAll();
+    } catch (err) {
+      careError = err instanceof Error ? err.message : m.care_failed();
+    } finally {
+      caring = false;
+    }
+  }
+
+  async function playWithCat() {
+    if (!selectedCat) return;
+    caring = true;
+    careError = null;
+    lastGame = null;
+    playing = true;
+    // The animation is not tied to the round trip: it runs its full course so
+    // a fast response does not cut the yarn toss short.
+    setTimeout(() => (playing = false), 1400);
+    try {
+      await post(`/api/cats/${selectedCat.id}/play`, {}, m.care_failed());
+      await invalidateAll();
+    } catch (err) {
+      careError = err instanceof Error ? err.message : m.care_failed();
+    } finally {
+      caring = false;
+    }
+  }
+
+  async function play(opponentId: string, opponentName: string) {
+    if (!selectedCat) return;
+    caring = true;
+    careError = null;
+    lastGame = null;
+    try {
+      const result = await post(
+        '/api/games',
+        { challenger_cat_id: selectedCat.id, opponent_cat_id: opponentId },
+        m.play_failed(),
+      );
+      const won = result.game?.winner_cat_id === selectedCat.id;
+      lastGame = won
+        ? m.play_won({ cat: selectedCat.name, opponent: opponentName })
+        : m.play_lost({ cat: selectedCat.name, opponent: opponentName });
+      await invalidateAll();
+    } catch (err) {
+      careError = err instanceof Error ? err.message : m.play_failed();
+    } finally {
+      caring = false;
+    }
   }
 
   async function releaseSelected() {
@@ -65,6 +175,8 @@
     }
   }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <section
   class="relative min-h-screen overflow-hidden px-4 py-10"
@@ -106,7 +218,23 @@
       <!-- selected cat -->
       <div class="flex-1">
         {#if selectedCat}
-          <CatCard cat={selectedCat} variant="hero" />
+          <CatHero
+            cat={selectedCat}
+            breeding={breedingByCat[selectedCat.id]}
+            busy={caring}
+            {playing}
+            onDropItem={give}
+            onPlay={playWithCat}
+          />
+
+          {#if lastGame}
+            <p class="font-cursive mt-3 text-lg" style="color: var(--color-lime);">{lastGame}</p>
+          {/if}
+          {#if careError}
+            <p class="font-retro mt-3 text-[0.6rem]" style="color: var(--color-magenta);">
+              {careError}
+            </p>
+          {/if}
         {/if}
 
         <div class="mt-6 rounded-xl p-4" style="background:rgba(8,0,26,0.5);border:1px dashed var(--color-magic);">
@@ -147,7 +275,7 @@
                   ? '[&>article]:rounded-b-none'
                   : ''}"
               >
-                <CatCard {cat} />
+                <CatCard {cat} breeding={breedingByCat[cat.id]} />
               </button>
 
               {#if isSelected}
@@ -203,6 +331,10 @@
           {/each}
         </ul>
 
+        <div class="mt-4">
+          <PantrySidebar {stock} cat={selectedCat ?? null} busy={caring} onUse={give} />
+        </div>
+
         <div class="mt-4 flex flex-col gap-2">
           <a
             href="/tame"
@@ -220,7 +352,6 @@
               {m.dashboard_tribe_full({ max: MAX_CATS })}
             </p>
           {/if}
-
         </div>
       </aside>
     </div>
@@ -236,6 +367,12 @@
         <span class="badge-hot">{m.dashboard_live()}</span>
       </div>
 
+      {#if selectedCat && playLeft > 0}
+        <p class="font-retro mb-2 text-[0.55rem]" style="color: var(--color-silver); opacity: 0.7;">
+          {m.play_cooldown({ cat: selectedCat.name, time: formatCountdown(playLeft) })}
+        </p>
+      {/if}
+
       {#if otherCats.length === 0}
         <p class="font-cursive text-sm" style="color:var(--color-silver); opacity:0.7;">
           {m.dashboard_first_cat()}
@@ -243,12 +380,108 @@
       {:else}
         <ul class="flex gap-3 overflow-x-auto pb-2">
           {#each otherCats as cat (cat.id)}
-            <li>
-              <CatCard {cat} variant="tile" />
+            <li class="flex flex-col gap-1">
+              <CatCard {cat} variant="tile" breeding={breedingByCat[cat.id]} />
+              <button
+                type="button"
+                onclick={() => play(cat.id, cat.name)}
+                disabled={caring || !selectedCat || playLeft > 0}
+                class="font-retro w-24 rounded-md px-2 py-2 text-[0.5rem] disabled:opacity-40"
+                style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
+              >
+                {m.play_cta()}
+              </button>
             </li>
           {/each}
         </ul>
       {/if}
     </div>
+
+    <!-- breedings -->
+    <div class="mt-4">
+      <div class="mb-3 flex items-center justify-between">
+        <h2
+          style="font-family: var(--font-display); color: var(--color-gold); font-size: 1.1rem; text-shadow: 0 0 8px var(--color-gold);"
+        >
+          {m.dashboard_breedings()}
+        </h2>
+        <a
+          href="/breedings"
+          class="font-retro rounded-md px-3 py-2 text-[0.6rem]"
+          style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
+        >
+          {m.dashboard_breedings_link()}
+        </a>
+      </div>
+
+      {#if breedings.length === 0}
+        <p class="font-cursive text-sm" style="color:var(--color-silver); opacity:0.7;">
+          {m.breeding_empty()}
+        </p>
+      {:else}
+        <ul class="flex gap-3 overflow-x-auto pb-2">
+          {#each breedings as breeding (breeding.id)}
+            <li>
+              <a
+                href="/breedings/{breeding.id}"
+                class="flex w-32 shrink-0 flex-col items-center gap-2 rounded-xl p-3 transition-opacity hover:opacity-90"
+                style={breeding.is_member
+                  ? 'background: rgba(26,10,0,0.6); border: 1px solid var(--color-gold);'
+                  : 'background: rgba(8,0,26,0.6); border: 1px solid var(--color-magic);'}
+              >
+                <span class="text-2xl">🏰</span>
+                <p
+                  class="w-full truncate text-center font-bold"
+                  style="font-family: var(--font-display); color: var(--color-gold); font-size: 0.8rem;"
+                >
+                  {breeding.name}
+                </p>
+                <p class="font-retro text-[0.5rem]" style="color: var(--color-silver); opacity: 0.7;">
+                  {m.breeding_cat_count({ count: breeding.cat_count })}
+                </p>
+              </a>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+
+    <!-- game results -->
+    {#if games.length > 0}
+      <div class="mt-4">
+        <h2
+          class="mb-3"
+          style="font-family: var(--font-display); color: var(--color-gold); font-size: 1.1rem; text-shadow: 0 0 8px var(--color-gold);"
+        >
+          {m.play_results()}
+        </h2>
+        <ul class="flex flex-col gap-2">
+          {#each games as game (game.id)}
+            <li
+              class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl px-3 py-2"
+              style="background: rgba(8,0,26,0.6); border: 1px solid var(--color-magic);"
+            >
+              <span class="font-retro text-[0.55rem]" style="color: var(--color-gold);">
+                {gameKindLabel(game.kind)}
+              </span>
+              <span class="font-cursive text-base" style="color: var(--color-silver);">
+                🏆 {(game.winner_cat_id === game.challenger?.id
+                  ? game.challenger?.name
+                  : game.opponent?.name) ?? m.breeding_unknown_cat()}
+              </span>
+              <span class="font-retro text-[0.55rem]" style="color: var(--color-cyan);">
+                {game.challenger_score} : {game.opponent_score}
+              </span>
+              <span
+                class="font-retro text-[0.5rem]"
+                style="color: var(--color-silver); opacity: 0.6;"
+              >
+                {game.challenger?.name ?? '?'} vs {game.opponent?.name ?? '?'}
+              </span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    {/if}
   </div>
 </section>

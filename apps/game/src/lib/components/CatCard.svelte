@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { MOOD_EMOJI, moodTier, simulate } from '$lib/game/care';
+  import { ILLNESS_EMOJI } from '$lib/game/items';
   import { m } from '$lib/paraglide/messages';
   import { getLocale } from '$lib/paraglide/runtime';
   import type { CatRow } from '$lib/supabase/types';
@@ -6,10 +8,36 @@
   const {
     cat,
     variant = 'compact',
+    breeding = null,
   }: {
-    cat: Pick<CatRow, 'id' | 'name' | 'image_url' | 'domesticated_at' | 'domestication_points'>;
-    variant?: 'hero' | 'compact' | 'tile';
+    cat: Pick<CatRow, 'id' | 'name' | 'image_url' | 'domesticated_at' | 'domestication_points'> &
+      Partial<Pick<CatRow, 'satiety' | 'happiness' | 'state_at' | 'illness'>>;
+    variant?: 'compact' | 'tile';
+    /** The breeding this cat lives in, when it is worth naming here. */
+    breeding?: { id: string; name: string } | null;
   } = $props();
+
+  // Only rows that carry the condition columns can show a mood — the breeding
+  // roster and the dashboard both do, a bare cat reference may not.
+  const state = $derived(
+    cat.satiety === undefined || cat.happiness === undefined || cat.state_at === undefined
+      ? null
+      : simulate({
+          id: cat.id,
+          satiety: cat.satiety,
+          happiness: cat.happiness,
+          state_at: cat.state_at,
+          illness: cat.illness ?? null,
+        }),
+  );
+
+  const mood = $derived(
+    state === null
+      ? null
+      : state.illness
+        ? ILLNESS_EMOJI[state.illness]
+        : MOOD_EMOJI[moodTier(state.happiness)],
+  );
 
   const formatted = $derived(
     new Date(cat.domesticated_at).toLocaleDateString(getLocale(), {
@@ -20,48 +48,7 @@
   );
 </script>
 
-{#if variant === 'hero'}
-  <article
-    class="relative flex flex-col items-center gap-4 rounded-2xl p-1"
-    style="background: conic-gradient(from var(--angle), var(--color-magic), var(--color-magenta), var(--color-cyan), var(--color-gold), var(--color-magic));animation: border-rotate 4s linear infinite;"
-  >
-    <div
-      class="flex w-full flex-col items-center gap-4 rounded-xl p-6"
-      style="background: linear-gradient(145deg,#0a001f,#1a003a,#00101a);"
-    >
-      <span class="badge-new">{m.cat_your_cat_badge()}</span>
-
-      <div class="relative">
-        <div
-          class="starburst"
-          style="width:300px;height:300px;top:50%;left:50%;transform:translate(-50%,-50%);"
-        ></div>
-        <img
-          src={cat.image_url}
-          alt={cat.name}
-          width="220"
-          height="220"
-          class="float-anim relative rounded-full object-cover"
-          style="width:220px;height:220px;border:4px solid var(--color-gold);box-shadow:0 0 30px var(--color-gold),0 0 60px var(--color-magic);"
-        />
-      </div>
-
-      <h2
-        class="title-shimmer text-center"
-        style="font-family: var(--font-chunky); font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.1;"
-      >
-        {cat.name}
-      </h2>
-
-      <p class="font-cursive text-xl" style="color: var(--color-cyan);">
-        {m.cat_tamed_with({ points: cat.domestication_points })}
-      </p>
-      <p class="font-retro text-xs" style="color: var(--color-silver); opacity: 0.7;">
-        {m.cat_domesticated_on({ date: formatted })}
-      </p>
-    </div>
-  </article>
-{:else if variant === 'tile'}
+{#if variant === 'tile'}
   <article
     class="flex w-24 shrink-0 flex-col items-center gap-2 rounded-xl p-2"
     style="background: rgba(8,0,26,0.6); border: 1px solid var(--color-magic);"
@@ -77,12 +64,23 @@
     <p
       class="w-full truncate text-center font-bold"
       style="font-family: var(--font-display); color: var(--color-gold); font-size: 0.8rem;"
+      title={cat.name}
     >
       {cat.name}
     </p>
     <p class="font-retro text-[0.5rem]" style="color: var(--color-silver); opacity: 0.7;">
+      {mood ?? ''}
       {cat.domestication_points} pts
     </p>
+    {#if breeding}
+      <p
+        class="font-retro w-full truncate text-center text-[0.5rem]"
+        style="color: var(--color-lime);"
+        title={breeding.name}
+      >
+        🏰 {breeding.name}
+      </p>
+    {/if}
   </article>
 {:else}
   <article
@@ -108,8 +106,14 @@
         class="font-retro truncate text-[0.55rem]"
         style="color: var(--color-silver); opacity: 0.7;"
       >
+        {mood ?? ''}
         {cat.domestication_points} pts · {formatted}
       </p>
+      {#if breeding}
+        <p class="font-retro truncate text-[0.55rem]" style="color: var(--color-lime);">
+          🏰 {breeding.name}
+        </p>
+      {/if}
     </div>
   </article>
 {/if}

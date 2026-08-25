@@ -7,14 +7,26 @@
     submitting,
     error,
     onSubmit,
+    onClose,
   }: {
     cat: CatEntity;
     submitting: boolean;
     error: string | null;
     onSubmit: (name: string) => void;
+    onClose: () => void;
   } = $props();
 
   let name = $state('');
+
+  // Closing mid-request would leave the caller unsure whether the cat was
+  // saved, so the modal holds until the request settles.
+  const close = () => {
+    if (!submitting) onClose();
+  };
+
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') close();
+  };
 
   function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -24,18 +36,43 @@
   }
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+
 <div
   class="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-4"
   style="background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="name-cat-title"
 >
+  <!-- The backdrop is a button so clicking outside closes without tripping
+       the a11y rules that a click-handling <div> would. -->
+  <button
+    type="button"
+    class="absolute inset-0 cursor-default"
+    aria-label={m.modal_close()}
+    onclick={close}
+  ></button>
+
   <div
-    class="relative flex h-full w-full flex-col overflow-hidden rounded-2xl p-1 sm:h-auto sm:max-w-md"
+    class="relative z-10 flex h-full w-full flex-col overflow-hidden rounded-2xl p-1 sm:h-auto sm:max-w-md"
     style="background:conic-gradient(from var(--angle), var(--color-magic), var(--color-magenta), var(--color-cyan), var(--color-gold), var(--color-magic));animation:border-rotate 2s linear infinite;"
   >
     <div
-      class="flex-1 overflow-y-auto rounded-xl p-6"
+      class="relative flex-1 overflow-y-auto rounded-xl p-6"
       style="background:linear-gradient(145deg,#0a001f,#1a003a,#00101a);"
     >
+      <button
+        type="button"
+        onclick={close}
+        disabled={submitting}
+        aria-label={m.modal_close()}
+        class="font-retro absolute top-3 right-3 z-10 rounded-md px-3 py-2 text-[0.7rem] disabled:opacity-40"
+        style="color:var(--color-silver);background:rgba(255,255,255,0.06);border:1px solid var(--color-magic);"
+      >
+        ✕
+      </button>
+
       <div class="flex min-h-full flex-col items-center justify-center gap-4 text-center">
         <span class="badge-new">{m.modal_domesticated_badge()}</span>
 
@@ -55,6 +92,7 @@
         </div>
 
         <h2
+          id="name-cat-title"
           class="title-shimmer"
           style="font-family:var(--font-chunky);font-size:clamp(1.8rem,5vw,2.4rem);line-height:1.1;"
         >

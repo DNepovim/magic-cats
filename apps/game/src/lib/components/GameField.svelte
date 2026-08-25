@@ -18,6 +18,7 @@
     tickEntity,
   } from '$lib/game/physics';
   import type { CatEntity, DragState, FoodEntity } from '$lib/game/types';
+  import ConfirmModal from './ConfirmModal.svelte';
   import FlyingCat from './FlyingCat.svelte';
   import FlyingFood from './FlyingFood.svelte';
   import NameCatModal from './NameCatModal.svelte';
@@ -34,6 +35,7 @@
   let domesticatedCat = $state<CatEntity | null>(null);
   let submitting = $state(false);
   let submitError = $state<string | null>(null);
+  let confirmingLeave = $state(false);
 
   let rafId = 0;
   let lastT = 0;
@@ -198,6 +200,24 @@
       submitting = false;
     }
   }
+
+  // Dismissing the naming modal keeps the cat in play — she is not saved until
+  // she is named, so the hunt simply resumes.
+  const dismissNaming = () => {
+    domesticatedCat = null;
+    submitError = null;
+    start();
+  };
+
+  const askToLeave = () => {
+    stop();
+    confirmingLeave = true;
+  };
+
+  const stayAndTame = () => {
+    confirmingLeave = false;
+    start();
+  };
 </script>
 
 <svelte:window onpointermove={handlePointerMove} onpointerup={handlePointerUp} onpointercancel={handlePointerUp} />
@@ -211,7 +231,15 @@
 
   <!-- HUD -->
   <div class="pointer-events-none absolute top-0 right-0 left-0 z-20 flex items-start justify-between p-4">
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col items-start gap-1">
+      <button
+        type="button"
+        onclick={askToLeave}
+        class="font-retro pointer-events-auto mb-1 rounded-md px-3 py-2 text-[0.6rem]"
+        style="color:var(--color-silver);background:rgba(8,0,26,0.7);border:1px solid var(--color-magic);"
+      >
+        {m.game_leave()}
+      </button>
       <span class="font-retro text-xs" style="color:var(--color-lime)">{m.game_status()}</span>
       <span class="font-cursive text-2xl" style="color:var(--color-cyan);text-shadow:0 0 8px var(--color-cyan)">
         {m.game_instruction()}
@@ -244,5 +272,22 @@
 </div>
 
 {#if domesticatedCat}
-  <NameCatModal cat={domesticatedCat} {submitting} error={submitError} onSubmit={submitName} />
+  <NameCatModal
+    cat={domesticatedCat}
+    {submitting}
+    error={submitError}
+    onSubmit={submitName}
+    onClose={dismissNaming}
+  />
+{/if}
+
+{#if confirmingLeave}
+  <ConfirmModal
+    title={m.game_leave_title()}
+    message={m.game_leave_text()}
+    confirmLabel={m.game_leave_confirm()}
+    cancelLabel={m.game_leave_cancel()}
+    onConfirm={() => goto('/')}
+    onCancel={stayAndTame}
+  />
 {/if}

@@ -1,0 +1,102 @@
+import type {
+  BreedingPostRow,
+  BreedingRequestRow,
+  BreedingRow,
+  CatRow,
+} from '$lib/supabase/types';
+import { error, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+
+export type PendingRequest = BreedingRequestRow & { cat: CatRow | null };
+
+export const load: PageServerLoad = async ({ params, locals }) => {
+  if (!locals.user) throw redirect(303, '/');
+
+  const { data: breeding } = await locals.supabase
+    .from('breedings')
+    .select('*')
+    .eq('id', params.id)
+    .maybeSingle<BreedingRow>();
+
+  if (!breeding) throw error(404, 'Breeding not found');
+
+  const { data: memberCats } = await locals.supabase
+    .from('breeding_cats')
+    .select('added_at, cats(*)')
+    .eq('breeding_id', params.id)
+    .order('added_at', { ascending: true })
+    .returns<{ added_at: string; cats: CatRow | null }[]>();
+
+  const cats = (memberCats ?? [])
+    .map((row) => row.cats)
+    .filter((cat): cat is CatRow => cat !== null);
+
+  const isAdmin = breeding.owner_user_id === locals.user.id;
+  const isMember = isAdmin || cats.some((cat) => cat.owner_user_id === locals.user?.id);
+
+  // Posts are member-only at the RLS level, so a non-member simply gets none
+  // back rather than an error.
+  const { data: posts } = isMember
+    ? await locals.supabase
+        .from('breeding_posts')
+        .select('*')
+        .eq('breeding_id', params.id)
+        .order('created_at', { ascending: true })
+        .returns<BreedingPostRow[]>()
+    : { data: [] as BreedingPostRow[] };
+
+  const { data: requests } = isAdmin
+    ? await locals.supabase
+        .from('breeding_requests')
+        .select('*, cats(*)')
+        .eq('breeding_id', params.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true })
+        .returns<(BreedingRequestRow & { cats: CatRow | null })[]>()
+    : { data: [] as (BreedingRequestRow & { cats: CatRow | null })[] };
+
+  // Only cats that are free to join, so the apply form can't offer an
+  // impossible choice.
+  const { data: ownedCats } = await locals.supabase
+    .from('cats')
+    .select('*')
+    .eq('owner_user_id', locals.user.id)
+    .returns<CatRow[]>();
+
+  const { data: placements } = await locals.supabase
+    .from('breeding_cats')
+    .select('cat_id')
+    .returns<{ cat_id: string }[]>();
+
+  const placed = new Set((placements ?? []).map((p) => p.cat_id));
+
+  // Named, not just counted, so the aside can say *which* cat is waiting.
+  const { data: myPending } = await locals.supabase
+    .from('breeding_requests')
+    .select('cat_id, created_at, cats(name)')
+    .eq('breeding_id', params.id)
+    .eq('requester_user_id', locals.user.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+    .returns<{ cat_id: string; created_at: string; cats: { name: string } | null }[]>();
+
+  const pendingCatIds = new Set((myPending ?? []).map((r) => r.cat_id));
+
+  return {
+    breeding,
+    cats,
+    posts: posts ?? [],
+    pendingRequests: (requests ?? []).map((r) => ({ ...r, cat: r.cats })),
+    isAdmin,
+    isMember,
+    myUserId: locals.user.id,
+    availableCats: (ownedCats ?? []).filter(
+      (cat) => !placed.has(cat.id) && !pendingCatIds.has(cat.id),
+    ),
+    myPendingCats: (myPending ?? []).map((r) => ({
+      cat_id: r.cat_id,
+      name: r.cats?.name ?? '',
+      created_at: r.created_at,
+    })),
+  };
+};
