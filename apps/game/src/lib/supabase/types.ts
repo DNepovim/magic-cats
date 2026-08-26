@@ -19,6 +19,14 @@ export type CatRow = {
   last_played_at: string | null;
 };
 
+/** A private note on a cat. Only the cat's owner can read or write it. */
+export type CatNoteRow = {
+  cat_id: string;
+  owner_user_id: string;
+  body: string;
+  updated_at: string;
+};
+
 export type UserItemRow = {
   user_id: string;
   item_id: string;

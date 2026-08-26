@@ -19,6 +19,7 @@
     breedingByCat={data.breedingByCat}
     games={data.games}
     stock={data.stock}
+    notes={data.notes}
     userEmail={data.user?.email ?? null}
   />
 {/if}

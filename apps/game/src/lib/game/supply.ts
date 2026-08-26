@@ -12,17 +12,21 @@ export const RUN_DURATION_MS = 30_000;
  *  backgrounded tab hands in late, and losing a haul to that would sting. */
 export const RUN_GRACE_MS = 20_000;
 export const RUN_COOLDOWN_MS = 5 * 60_000;
-export const RUN_ITEM_COUNT = 18;
+// Flights are short now, so the run needs more of them to stay busy.
+export const RUN_ITEM_COUNT = 32;
 
 export type SupplyDrop = {
   index: number;
   itemId: string;
   /** Milliseconds into the run when it enters the screen. */
   spawnAt: number;
-  /** 0…1 of the field height. */
-  lane: number;
-  /** Screen widths per second. */
-  speed: number;
+  /** Entry and exit points, in fractions of the field, just off each edge. */
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+  /** How long it takes to cross, in milliseconds. */
+  travelMs: number;
   size: number;
 };
 
@@ -44,8 +48,9 @@ const pickWeighted = (roll: number): Item => {
 };
 
 /**
- * The full flight plan for a run. Rarer items are smaller and faster, so a
- * medicine is genuinely harder to grab than a bowl of kibble.
+ * The full flight plan for a run. Every drop crosses the field on its own
+ * heading rather than drifting left to right, and rarer items are smaller and
+ * faster, so a medicine is genuinely harder to grab than a bowl of kibble.
  */
 export const scheduleFor = (seed: number): SupplyDrop[] => {
   const random = rng(seed);
@@ -54,12 +59,23 @@ export const scheduleFor = (seed: number): SupplyDrop[] => {
     const item = pickWeighted(random());
     const rarity = 1 - item.weight / 30; // 0 = common, ~0.8 = rare
 
+    // A heading through a point near the middle, entered and left off-field.
+    const angle = random() * Math.PI * 2;
+    const midX = 0.3 + random() * 0.4;
+    const midY = 0.25 + random() * 0.5;
+    const reach = 0.85;
+    const dx = Math.cos(angle) * reach;
+    const dy = Math.sin(angle) * reach * 0.8;
+
     return {
       index,
       itemId: item.id,
-      spawnAt: Math.round((index / RUN_ITEM_COUNT) * (RUN_DURATION_MS - 4000) + random() * 900),
-      lane: 0.12 + random() * 0.76,
-      speed: 0.22 + rarity * 0.3 + random() * 0.12,
+      spawnAt: Math.round((index / RUN_ITEM_COUNT) * (RUN_DURATION_MS - 3000) + random() * 700),
+      fromX: midX - dx,
+      fromY: midY - dy,
+      toX: midX + dx,
+      toY: midY + dy,
+      travelMs: Math.round(4200 - rarity * 1800 - random() * 700),
       size: Math.round(70 - rarity * 26),
     };
   });

@@ -19,17 +19,39 @@
     breeding = null,
     busy = false,
     playing = false,
+    note = '',
+    savingNote = false,
     onDropItem,
     onPlay,
+    onSaveNote,
   }: {
     cat: CatRow;
     breeding?: CatBreeding | null;
     busy?: boolean;
     /** True while the play animation is running. */
     playing?: boolean;
+    /** Your private note on this cat, as stored. */
+    note?: string;
+    savingNote?: boolean;
     onDropItem: (itemId: string) => void;
     onPlay: () => void;
+    onSaveNote: (body: string) => void;
   } = $props();
+
+  // The draft follows the stored note, resetting when a different cat is
+  // selected or when a save comes back — both are read inside the effect so it
+  // actually re-runs, rather than capturing whatever the props were at setup.
+  let draft = $state('');
+  let syncedWith = $state<string | null>(null);
+  $effect(() => {
+    const key = `${cat.id}\u0000${note}`;
+    if (syncedWith !== key) {
+      draft = note;
+      syncedWith = key;
+    }
+  });
+
+  const dirty = $derived(draft.trim() !== note.trim());
 
   // She keeps living while you look at her, so the clock is state.
   let now = $state(Date.now());
@@ -233,6 +255,35 @@
     <p class="font-retro text-center text-[0.5rem]" style="color: var(--color-silver); opacity: 0.6;">
       {m.care_drop_hint()}
     </p>
+
+    <!-- private notes -->
+    <div class="flex w-full flex-col gap-2 border-t pt-4" style="border-color: rgba(155,0,255,0.4);">
+      <div class="flex items-center justify-between gap-2">
+        <p class="font-retro text-xs" style="color: var(--color-cyan);">{m.note_title()}</p>
+        <span class="font-retro text-[0.5rem]" style="color: var(--color-silver); opacity: 0.6;">
+          🔒 {m.note_private()}
+        </span>
+      </div>
+
+      <textarea
+        bind:value={draft}
+        maxlength="2000"
+        rows="3"
+        placeholder={m.note_placeholder({ name: cat.name })}
+        class="w-full rounded-lg px-3 py-2 outline-none"
+        style="background: rgba(0,0,0,0.5); color: var(--color-silver); font-family: var(--font-pixel); font-size: 0.85rem; border: 2px solid var(--color-magic);"
+      ></textarea>
+
+      <button
+        type="button"
+        onclick={() => onSaveNote(draft)}
+        disabled={savingNote || !dirty}
+        class="font-retro rounded-md px-3 py-2 text-[0.6rem] disabled:opacity-40"
+        style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
+      >
+        {savingNote ? m.note_saving() : dirty ? m.note_save() : m.note_saved()}
+      </button>
+    </div>
   </div>
 </article>
 

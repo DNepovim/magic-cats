@@ -17,6 +17,7 @@
     breedingByCat,
     games,
     stock,
+    notes,
     userEmail,
   }: {
     myCats: CatRow[];
@@ -36,6 +37,7 @@
     breedingByCat: Record<string, CatBreeding>;
     games: GameFeedItem[];
     stock: Record<string, number>;
+    notes: Record<string, string>;
     userEmail: string | null;
   } = $props();
 
@@ -110,6 +112,22 @@
       careError = err instanceof Error ? err.message : m.care_failed();
     } finally {
       caring = false;
+    }
+  }
+
+  let savingNote = $state(false);
+
+  async function saveNote(body: string) {
+    if (!selectedCat) return;
+    savingNote = true;
+    careError = null;
+    try {
+      await post(`/api/cats/${selectedCat.id}/note`, { body }, m.note_failed());
+      await invalidateAll();
+    } catch (err) {
+      careError = err instanceof Error ? err.message : m.note_failed();
+    } finally {
+      savingNote = false;
     }
   }
 
@@ -223,9 +241,55 @@
             breeding={breedingByCat[selectedCat.id]}
             busy={caring}
             {playing}
+            note={notes[selectedCat.id] ?? ''}
+            {savingNote}
             onDropItem={give}
             onPlay={playWithCat}
+            onSaveNote={saveNote}
           />
+
+          <div class="mt-2 flex flex-col items-center gap-2">
+            {#if confirmingRelease}
+              <p class="font-cursive text-base" style="color: var(--color-magenta);">
+                {m.dashboard_release_confirm({ name: selectedCat.name })}
+              </p>
+              <div class="flex gap-3">
+                <button
+                  type="button"
+                  onclick={releaseSelected}
+                  disabled={releasing}
+                  class="font-retro rounded-md px-3 py-2 text-[0.55rem] disabled:opacity-50"
+                  style="color: var(--color-void); background: var(--color-magenta); border: 1px solid var(--color-magenta);"
+                >
+                  {releasing ? m.dashboard_releasing() : m.dashboard_release_yes()}
+                </button>
+                <button
+                  type="button"
+                  onclick={() => (confirmingRelease = false)}
+                  disabled={releasing}
+                  class="font-retro text-[0.55rem] underline disabled:opacity-50"
+                  style="color: var(--color-silver); opacity: 0.7;"
+                >
+                  {m.dashboard_release_no()}
+                </button>
+              </div>
+            {:else}
+              <button
+                type="button"
+                onclick={() => (confirmingRelease = true)}
+                class="font-retro text-[0.55rem] underline"
+                style="color: var(--color-silver); opacity: 0.55;"
+              >
+                {m.dashboard_release({ name: selectedCat.name })}
+              </button>
+            {/if}
+
+            {#if releaseError}
+              <p class="font-retro text-[0.55rem]" style="color: var(--color-magenta);">
+                {releaseError}
+              </p>
+            {/if}
+          </div>
 
           {#if lastGame}
             <p class="font-cursive mt-3 text-lg" style="color: var(--color-lime);">{lastGame}</p>
@@ -278,55 +342,6 @@
                 <CatCard {cat} breeding={breedingByCat[cat.id]} />
               </button>
 
-              {#if isSelected}
-                <!-- Release lives inside the selected row so it reads as an
-                     action on this cat, not on the tribe as a whole. -->
-                <div
-                  class="flex flex-col gap-2 rounded-b-xl px-3 pt-2 pb-3"
-                  style="background: rgba(8,0,26,0.6); border: 2px solid var(--color-magic); border-top: 0;"
-                >
-                  {#if confirmingRelease}
-                    <p class="font-cursive text-center text-base" style="color: var(--color-magenta);">
-                      {m.dashboard_release_confirm({ name: cat.name })}
-                    </p>
-                    <div class="flex gap-2">
-                      <button
-                        type="button"
-                        onclick={releaseSelected}
-                        disabled={releasing}
-                        class="font-retro flex-1 rounded-md px-3 py-2 text-[0.6rem] disabled:opacity-50"
-                        style="color: var(--color-void); background: var(--color-magenta); border: 1px solid var(--color-magenta);"
-                      >
-                        {releasing ? m.dashboard_releasing() : m.dashboard_release_yes()}
-                      </button>
-                      <button
-                        type="button"
-                        onclick={() => (confirmingRelease = false)}
-                        disabled={releasing}
-                        class="font-retro flex-1 rounded-md px-3 py-2 text-[0.6rem] disabled:opacity-50"
-                        style="color: var(--color-silver); background: rgba(255,255,255,0.06); border: 1px solid var(--color-magic);"
-                      >
-                        {m.dashboard_release_no()}
-                      </button>
-                    </div>
-                  {:else}
-                    <button
-                      type="button"
-                      onclick={() => (confirmingRelease = true)}
-                      class="font-retro rounded-md px-3 py-2 text-[0.6rem]"
-                      style="color: var(--color-magenta); background: rgba(255,255,255,0.04); border: 1px solid var(--color-magenta);"
-                    >
-                      {m.dashboard_release({ name: cat.name })}
-                    </button>
-                  {/if}
-
-                  {#if releaseError}
-                    <p class="font-retro text-center text-[0.55rem]" style="color: var(--color-magenta);">
-                      {releaseError}
-                    </p>
-                  {/if}
-                </div>
-              {/if}
             </li>
           {/each}
         </ul>
@@ -386,7 +401,7 @@
                 type="button"
                 onclick={() => play(cat.id, cat.name)}
                 disabled={caring || !selectedCat || playLeft > 0}
-                class="font-retro w-24 rounded-md px-2 py-2 text-[0.5rem] disabled:opacity-40"
+                class="font-retro w-28 rounded-md px-2 py-2 text-[0.5rem] disabled:opacity-40"
                 style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
               >
                 {m.play_cta()}

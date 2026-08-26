@@ -39,6 +39,17 @@
         : MOOD_EMOJI[moodTier(state.happiness)],
   );
 
+  /** Named, not just an emoji: an ill cat should be unmissable in a list. */
+  const illnessName = $derived(
+    state?.illness
+      ? {
+          sniffles: m.illness_sniffles(),
+          earmites: m.illness_earmites(),
+          furball: m.illness_furball(),
+        }[state.illness]
+      : null,
+  );
+
   const formatted = $derived(
     new Date(cat.domesticated_at).toLocaleDateString(getLocale(), {
       year: 'numeric',
@@ -50,8 +61,10 @@
 
 {#if variant === 'tile'}
   <article
-    class="flex w-24 shrink-0 flex-col items-center gap-2 rounded-xl p-2"
-    style="background: rgba(8,0,26,0.6); border: 1px solid var(--color-magic);"
+    class="flex w-28 shrink-0 flex-col items-center gap-2 rounded-xl p-2"
+    style="background: rgba(8,0,26,0.6); border: 1px solid {illnessName
+      ? 'var(--color-magenta)'
+      : 'var(--color-magic)'};"
   >
     <img
       src={cat.image_url}
@@ -72,6 +85,15 @@
       {mood ?? ''}
       {cat.domestication_points} pts
     </p>
+    {#if illnessName}
+      <p
+        class="font-retro w-full truncate text-center text-[0.5rem]"
+        style="color: var(--color-magenta);"
+        title={illnessName}
+      >
+        {illnessName}
+      </p>
+    {/if}
     {#if breeding}
       <p
         class="font-retro w-full truncate text-center text-[0.5rem]"
@@ -85,7 +107,11 @@
 {:else}
   <article
     class="flex items-center gap-3 rounded-xl p-3"
-    style="background: rgba(8,0,26,0.6); border: 2px solid var(--color-magic); box-shadow: 0 0 8px rgba(155,0,255,0.4);"
+    style="background: rgba(8,0,26,0.6); border: 2px solid {illnessName
+      ? 'var(--color-magenta)'
+      : 'var(--color-magic)'}; box-shadow: 0 0 8px {illnessName
+      ? 'rgba(255,0,128,0.45)'
+      : 'rgba(155,0,255,0.4)'};"
   >
     <img
       src={cat.image_url}
@@ -109,6 +135,12 @@
         {mood ?? ''}
         {cat.domestication_points} pts · {formatted}
       </p>
+      {#if illnessName && state?.illness}
+        <p class="font-retro truncate text-[0.55rem]" style="color: var(--color-magenta);">
+          {ILLNESS_EMOJI[state.illness]}
+          {m.illness_has({ illness: illnessName })}
+        </p>
+      {/if}
       {#if breeding}
         <p class="font-retro truncate text-[0.55rem]" style="color: var(--color-lime);">
           🏰 {breeding.name}

@@ -31,6 +31,8 @@ type PageState =
       games: GameFeedItem[];
       /** item id → how many you have. */
       stock: Record<string, number>;
+      /** cat id → your private note on that cat. */
+      notes: Record<string, string>;
       /** cat id → the breeding that cat lives in. */
       breedingByCat: Record<string, CatBreeding>;
     };
@@ -108,8 +110,15 @@ export const load: PageServerLoad = async ({ locals }): Promise<PageState> => {
     .gt('quantity', 0)
     .returns<{ item_id: string; quantity: number }[]>();
 
+  // RLS keeps this to your own notes; no filter of ours is what protects them.
+  const { data: noteRows } = await locals.supabase
+    .from('cat_notes')
+    .select('cat_id, body')
+    .returns<{ cat_id: string; body: string }[]>();
+
   return {
     state: 'dashboard',
+    notes: Object.fromEntries((noteRows ?? []).map((row) => [row.cat_id, row.body])),
     stock: Object.fromEntries((items ?? []).map((row) => [row.item_id, row.quantity])),
     myCats,
     otherCats: otherCats ?? [],
