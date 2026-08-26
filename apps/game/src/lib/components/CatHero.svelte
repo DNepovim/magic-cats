@@ -18,23 +18,18 @@
     cat,
     breeding = null,
     busy = false,
-    playing = false,
     note = '',
     savingNote = false,
     onDropItem,
-    onPlay,
     onSaveNote,
   }: {
     cat: CatRow;
     breeding?: CatBreeding | null;
     busy?: boolean;
-    /** True while the play animation is running. */
-    playing?: boolean;
     /** Your private note on this cat, as stored. */
     note?: string;
     savingNote?: boolean;
     onDropItem: (itemId: string) => void;
-    onPlay: () => void;
     onSaveNote: (body: string) => void;
   } = $props();
 
@@ -178,7 +173,6 @@
         width="220"
         height="220"
         class="float-anim relative rounded-full object-cover"
-        class:wiggle={playing}
         style="width:220px;height:220px;border:4px solid {dragOver
           ? 'var(--color-lime)'
           : 'var(--color-gold)'};box-shadow:0 0 30px {dragOver
@@ -186,14 +180,6 @@
           : 'var(--color-gold)'},0 0 60px var(--color-magic);"
       />
 
-      {#if playing}
-        <span class="yarn" aria-hidden="true">🧶</span>
-        {#each [0, 1, 2] as heart (heart)}
-          <span class="heart" style="--delay: {heart * 0.18}s; --drift: {(heart - 1) * 40}px;"
-            >💗</span
-          >
-        {/each}
-      {/if}
     </div>
 
     <h2
@@ -242,15 +228,26 @@
       </a>
     {/if}
 
-    <button
-      type="button"
-      onclick={onPlay}
-      disabled={busy || petLeft > 0}
-      class="font-retro w-full rounded-md px-3 py-3 text-[0.6rem] disabled:opacity-40"
-      style="color: var(--color-void); background: var(--color-gold); border: 1px solid var(--color-gold);"
-    >
-      {petLeft > 0 ? `🧶 ${formatCountdown(petLeft)}` : m.care_play()}
-    </button>
+    {#if condition.illness || petLeft > 0}
+      <span
+        class="font-retro w-full rounded-md px-3 py-3 text-center text-[0.6rem] opacity-40"
+        style="color: var(--color-void); background: var(--color-gold); border: 1px solid var(--color-gold);"
+      >
+        {#if condition.illness}
+          {m.care_play_ill()}
+        {:else}
+          🧶 {formatCountdown(petLeft)}
+        {/if}
+      </span>
+    {:else}
+      <a
+        href="/play/{cat.id}"
+        class="font-retro w-full rounded-md px-3 py-3 text-center text-[0.6rem]"
+        style="color: var(--color-void); background: var(--color-gold); border: 1px solid var(--color-gold);"
+      >
+        {m.care_play()}
+      </a>
+    {/if}
 
     <p class="font-retro text-center text-[0.5rem]" style="color: var(--color-silver); opacity: 0.6;">
       {m.care_drop_hint()}
@@ -298,77 +295,9 @@
     transform: scale(1.04);
   }
 
-  .wiggle {
-    animation: wiggle 0.4s ease-in-out 3;
-  }
-
-  @keyframes wiggle {
-    0%,
-    100% {
-      transform: rotate(0deg) translateY(0);
-    }
-    25% {
-      transform: rotate(-7deg) translateY(-6px);
-    }
-    75% {
-      transform: rotate(7deg) translateY(-6px);
-    }
-  }
-
-  .yarn {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    font-size: 2.5rem;
-    pointer-events: none;
-    animation: yarn-toss 1.2s ease-in-out;
-  }
-
-  @keyframes yarn-toss {
-    0% {
-      transform: translate(-160px, 40px) rotate(0deg);
-      opacity: 0;
-    }
-    20% {
-      opacity: 1;
-    }
-    50% {
-      transform: translate(0, -120px) rotate(360deg);
-    }
-    100% {
-      transform: translate(160px, 40px) rotate(720deg);
-      opacity: 0;
-    }
-  }
-
-  .heart {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    font-size: 1.6rem;
-    pointer-events: none;
-    animation: heart-rise 1.3s ease-out var(--delay) both;
-  }
-
-  @keyframes heart-rise {
-    0% {
-      transform: translate(-50%, 0) scale(0.4);
-      opacity: 0;
-    }
-    30% {
-      opacity: 1;
-    }
-    100% {
-      transform: translate(calc(-50% + var(--drift)), -140px) scale(1.2);
-      opacity: 0;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .wiggle,
-    .yarn,
-    .heart {
-      animation: none;
+    .drop-zone {
+      transition: none;
     }
   }
 </style>

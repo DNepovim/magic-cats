@@ -20,6 +20,7 @@
     games={data.games}
     stock={data.stock}
     notes={data.notes}
+    supplyReadyAt={data.supplyReadyAt}
     userEmail={data.user?.email ?? null}
   />
 {/if}

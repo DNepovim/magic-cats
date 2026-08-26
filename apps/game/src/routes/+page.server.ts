@@ -5,6 +5,7 @@ import type {
   DashboardBreeding,
   GameFeedItem,
 } from '$lib/supabase/types';
+import { nextRunReadyAt } from '$lib/supabase/supply-runs';
 import type { PageServerLoad } from './$types';
 
 type OtherCat = Pick<
@@ -33,6 +34,8 @@ type PageState =
       stock: Record<string, number>;
       /** cat id → your private note on that cat. */
       notes: Record<string, string>;
+      /** When the next supply run may start, or null if one may start now. */
+      supplyReadyAt: string | null;
       /** cat id → the breeding that cat lives in. */
       breedingByCat: Record<string, CatBreeding>;
     };
@@ -118,6 +121,7 @@ export const load: PageServerLoad = async ({ locals }): Promise<PageState> => {
 
   return {
     state: 'dashboard',
+    supplyReadyAt: await nextRunReadyAt(locals.supabase, locals.user.id),
     notes: Object.fromEntries((noteRows ?? []).map((row) => [row.cat_id, row.body])),
     stock: Object.fromEntries((items ?? []).map((row) => [row.item_id, row.quantity])),
     myCats,

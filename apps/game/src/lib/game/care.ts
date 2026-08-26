@@ -216,14 +216,41 @@ export const petCooldownLeft = (
     ? 0
     : Math.max(0, Date.parse(cat.last_petted_at) + PET_COOLDOWN_MS - now);
 
-/** Playing with her: free, but she wants a break afterwards. */
-export const applyPlay = (
+export type PlayRefusal = { ok: false; reason: 'resting' | 'ill' };
+export type PlayReadiness = { ok: true } | PlayRefusal;
+export type PlayOutcome = { ok: true; snapshot: Snapshot } | PlayRefusal;
+
+/**
+ * Whether she is up for a game at all. Checked before a round starts, so a
+ * player is never sent into a game whose reward would be refused afterwards.
+ */
+export const canPlay = (
   cat: SimInput & Pick<CatState, 'last_petted_at'>,
   now = Date.now(),
-): Snapshot | null => {
-  if (petCooldownLeft(cat, now) > 0) return null;
+): PlayReadiness => {
+  if (petCooldownLeft(cat, now) > 0) return { ok: false, reason: 'resting' };
+  if (simulate(cat, now).illness) return { ok: false, reason: 'ill' };
+  return { ok: true };
+};
+
+/**
+ * Banking a finished round. The gain comes from the game and the cat's taste
+ * for it (see $lib/game/play); the guards are the same ones canPlay() applies,
+ * rechecked here because the round takes time and the world moves on.
+ */
+export const applyPlay = (
+  cat: SimInput & Pick<CatState, 'last_petted_at'>,
+  gain: number = PET_HAPPINESS,
+  now = Date.now(),
+): PlayOutcome => {
+  const ready = canPlay(cat, now);
+  if (!ready.ok) return ready;
+
   const current = simulate(cat, now);
-  return snapshot({ ...current, happiness: clamp(current.happiness + PET_HAPPINESS) }, now);
+  return {
+    ok: true,
+    snapshot: snapshot({ ...current, happiness: clamp(current.happiness + gain) }, now),
+  };
 };
 
 export type MoodTier = 'miserable' | 'grumpy' | 'content' | 'happy' | 'blissful';

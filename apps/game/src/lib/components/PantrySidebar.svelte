@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CURE_SATIETY, simulate } from '$lib/game/care';
+  import { CURE_SATIETY, formatCountdown, simulate } from '$lib/game/care';
   import { ITEMS, type Item } from '$lib/game/items';
   import { m } from '$lib/paraglide/messages';
   import type { CatRow } from '$lib/supabase/types';
@@ -8,6 +8,7 @@
     stock,
     cat,
     busy = false,
+    supplyReadyAt = null,
     onUse,
   }: {
     /** item id → how many you have. */
@@ -15,8 +16,19 @@
     /** The cat the medicine hints are about. */
     cat: CatRow | null;
     busy?: boolean;
+    /** When the next supply run may start, or null if one may start now. */
+    supplyReadyAt?: string | null;
     onUse: (itemId: string) => void;
   } = $props();
+
+  // A countdown has to tick, so the clock is state rather than a render-time read.
+  let now = $state(Date.now());
+  $effect(() => {
+    const id = setInterval(() => (now = Date.now()), 1000);
+    return () => clearInterval(id);
+  });
+
+  const runReadyIn = $derived(supplyReadyAt ? Math.max(0, Date.parse(supplyReadyAt) - now) : 0);
 
   const condition = $derived(cat ? simulate(cat) : null);
 
@@ -127,13 +139,25 @@
 >
   <div class="flex items-center justify-between gap-2">
     <p class="font-retro text-xs" style="color: var(--color-cyan);">{m.supply_pantry()}</p>
-    <a
-      href="/supply"
-      class="font-retro rounded-md px-3 py-2 text-[0.55rem]"
-      style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
-    >
-      {m.supply_link()}
-    </a>
+    {#if runReadyIn > 0}
+      <!-- Still restocking: say when, and do not offer a trip that the start
+           endpoint would only refuse. -->
+      <span
+        class="font-retro rounded-md px-3 py-2 text-[0.55rem] opacity-50"
+        style="color: var(--color-silver); border: 1px solid var(--color-magic);"
+        title={m.supply_restocking()}
+      >
+        🧺 {formatCountdown(runReadyIn)}
+      </span>
+    {:else}
+      <a
+        href="/supply"
+        class="font-retro rounded-md px-3 py-2 text-[0.55rem]"
+        style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
+      >
+        {m.supply_link()}
+      </a>
+    {/if}
   </div>
 
   {#if owned.length === 0}

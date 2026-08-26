@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
-  import { formatCountdown, gameCooldownLeft } from '$lib/game/care';
+  import { formatCountdown, gameCooldownLeft, simulate } from '$lib/game/care';
   import { MAX_CATS } from '$lib/game/constants';
   import { m } from '$lib/paraglide/messages';
   import { supabase } from '$lib/supabase/client';
@@ -18,6 +18,7 @@
     games,
     stock,
     notes,
+    supplyReadyAt,
     userEmail,
   }: {
     myCats: CatRow[];
@@ -38,6 +39,7 @@
     games: GameFeedItem[];
     stock: Record<string, number>;
     notes: Record<string, string>;
+    supplyReadyAt: string | null;
     userEmail: string | null;
   } = $props();
 
@@ -59,6 +61,7 @@
     return () => clearInterval(id);
   });
   const playLeft = $derived(selectedCat ? gameCooldownLeft(selectedCat, now) : 0);
+  const selectedIsIll = $derived(selectedCat ? simulate(selectedCat, now).illness !== null : false);
 
   const gameKindLabel = (kind: GameFeedItem['kind']) =>
     ({ chase: m.play_kind_chase(), wrestle: m.play_kind_wrestle(), yarn: m.play_kind_yarn() })[kind];
@@ -85,7 +88,6 @@
   let caring = $state(false);
   let careError = $state<string | null>(null);
   let lastGame = $state<string | null>(null);
-  let playing = $state(false);
 
   const post = async (url: string, payload: unknown, fallback: string) => {
     const res = await fetch(url, {
@@ -131,25 +133,7 @@
     }
   }
 
-  async function playWithCat() {
-    if (!selectedCat) return;
-    caring = true;
-    careError = null;
-    lastGame = null;
-    playing = true;
-    // The animation is not tied to the round trip: it runs its full course so
-    // a fast response does not cut the yarn toss short.
-    setTimeout(() => (playing = false), 1400);
-    try {
-      await post(`/api/cats/${selectedCat.id}/play`, {}, m.care_failed());
-      await invalidateAll();
-    } catch (err) {
-      careError = err instanceof Error ? err.message : m.care_failed();
-    } finally {
-      caring = false;
-    }
-  }
-
+  /** A game between your selected cat and someone else's — see /api/games. */
   async function play(opponentId: string, opponentName: string) {
     if (!selectedCat) return;
     caring = true;
@@ -240,11 +224,9 @@
             cat={selectedCat}
             breeding={breedingByCat[selectedCat.id]}
             busy={caring}
-            {playing}
             note={notes[selectedCat.id] ?? ''}
             {savingNote}
             onDropItem={give}
-            onPlay={playWithCat}
             onSaveNote={saveNote}
           />
 
@@ -347,7 +329,13 @@
         </ul>
 
         <div class="mt-4">
-          <PantrySidebar {stock} cat={selectedCat ?? null} busy={caring} onUse={give} />
+          <PantrySidebar
+            {stock}
+            cat={selectedCat ?? null}
+            busy={caring}
+            {supplyReadyAt}
+            onUse={give}
+          />
         </div>
 
         <div class="mt-4 flex flex-col gap-2">
@@ -382,7 +370,11 @@
         <span class="badge-hot">{m.dashboard_live()}</span>
       </div>
 
-      {#if selectedCat && playLeft > 0}
+      {#if selectedCat && selectedIsIll}
+        <p class="font-retro mb-2 text-[0.55rem]" style="color: var(--color-magenta);">
+          {m.play_too_ill({ cat: selectedCat.name })}
+        </p>
+      {:else if selectedCat && playLeft > 0}
         <p class="font-retro mb-2 text-[0.55rem]" style="color: var(--color-silver); opacity: 0.7;">
           {m.play_cooldown({ cat: selectedCat.name, time: formatCountdown(playLeft) })}
         </p>
@@ -400,7 +392,7 @@
               <button
                 type="button"
                 onclick={() => play(cat.id, cat.name)}
-                disabled={caring || !selectedCat || playLeft > 0}
+                disabled={caring || !selectedCat || playLeft > 0 || selectedIsIll}
                 class="font-retro w-28 rounded-md px-2 py-2 text-[0.5rem] disabled:opacity-40"
                 style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
               >
