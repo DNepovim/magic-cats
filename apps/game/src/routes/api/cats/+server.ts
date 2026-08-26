@@ -1,6 +1,7 @@
 import { MAX_CATS, THRESHOLD } from '$lib/game/constants';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { canonicalCatImageUrl } from '$lib/game/images';
 
 type Payload = {
   name?: string;
@@ -30,6 +31,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   if (name.length < 1 || name.length > 32) throw error(400, 'Name must be 1–32 characters');
   if (!isHttpUrl(imageUrl)) throw error(400, 'image_url must be a valid URL');
+
+  // The client should already have done this, but the row the API writes is
+  // the one that has to render.
+  const canonicalUrl = canonicalCatImageUrl(imageUrl);
   if (points < THRESHOLD) throw error(400, `Cat is not domesticated yet (${points}/${THRESHOLD})`);
 
   const { count, error: countError } = await locals.supabase
@@ -45,7 +50,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     .insert({
       owner_user_id: locals.user.id,
       name,
-      image_url: imageUrl,
+      image_url: canonicalUrl,
       domestication_points: points,
     })
     .select('*')

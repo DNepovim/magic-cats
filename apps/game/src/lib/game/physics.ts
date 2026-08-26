@@ -1,6 +1,7 @@
 import { CAT_SIZE, CAT_SPEED_RANGE, FOOD_SPEED_RANGE } from './constants';
 import { type FoodType, pickRandomFoodType } from './foods';
 import type { CatEntity, FoodEntity } from './types';
+import { canonicalCatImageUrl } from './images';
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
 const randSign = () => (Math.random() < 0.5 ? -1 : 1);
@@ -112,7 +113,7 @@ export const fetchCatImageUrls = async (count: number): Promise<string[]> => {
       if (!res.ok) continue;
       const data = (await res.json()) as { url: string }[];
       const url = data[0]?.url;
-      if (url) urls.add(url);
+      if (url) urls.add(canonicalCatImageUrl(url));
     } catch {
       // ignore and retry
     }
