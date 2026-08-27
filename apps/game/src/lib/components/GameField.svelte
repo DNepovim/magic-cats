@@ -186,6 +186,7 @@
           name,
           image_url: domesticatedCat.imageUrl,
           domestication_points: domesticatedCat.points,
+          gender: domesticatedCat.gender,
         }),
       });
       if (!res.ok) {

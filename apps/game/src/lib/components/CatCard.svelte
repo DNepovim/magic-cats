@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { isNight, MOOD_EMOJI, moodTier, simulate } from '$lib/game/care';
+  import { ageInDays, isNight, MOOD_EMOJI, moodTier, simulate } from '$lib/game/care';
+  import { GENDER_SYMBOL } from '$lib/game/mating';
   import { ILLNESS_EMOJI } from '$lib/game/items';
   import { m } from '$lib/paraglide/messages';
   import { getLocale } from '$lib/paraglide/runtime';
@@ -11,7 +12,20 @@
     breeding = null,
   }: {
     cat: Pick<CatRow, 'id' | 'name' | 'image_url' | 'domesticated_at' | 'domestication_points'> &
-      Partial<Pick<CatRow, 'satiety' | 'happiness' | 'state_at' | 'illness'>>;
+      Partial<
+        Pick<
+          CatRow,
+          | 'satiety'
+          | 'happiness'
+          | 'state_at'
+          | 'illness'
+          | 'gender'
+          | 'birth_at'
+          | 'origin'
+          | 'pregnant_since'
+          | 'due_at'
+        >
+      >;
     variant?: 'compact' | 'tile';
     /** The breeding this cat lives in, when it is worth naming here. */
     breeding?: { id: string; name: string } | null;
@@ -52,6 +66,11 @@
       : null,
   );
 
+  const expecting = $derived(Boolean(cat.pregnant_since && cat.due_at));
+
+  /** Her age in whole days — the number that replaced her taming points. */
+  const age = $derived(cat.birth_at ? Math.floor(ageInDays(cat.birth_at)) : null);
+
   const formatted = $derived(
     new Date(cat.domesticated_at).toLocaleDateString(getLocale(), {
       year: 'numeric',
@@ -68,14 +87,41 @@
       ? 'var(--color-magenta)'
       : 'var(--color-magic)'};"
   >
-    <img
-      src={cat.image_url}
-      alt={cat.name}
-      width="64"
-      height="64"
-      class="rounded-full object-cover"
-      style="width:64px;height:64px;border:2px solid var(--color-cyan);box-shadow:0 0 6px var(--color-cyan);"
-    />
+    <div class="relative">
+      <img
+        src={cat.image_url}
+        alt={cat.name}
+        width="64"
+        height="64"
+        class="rounded-full object-cover"
+        style="width:64px;height:64px;border:2px solid {expecting
+          ? 'var(--color-magenta)'
+          : 'var(--color-cyan)'};box-shadow:0 0 6px {expecting
+          ? 'var(--color-magenta)'
+          : 'var(--color-cyan)'};"
+      />
+      {#if expecting}
+        <span
+          class="absolute -top-1 -left-1 grid h-5 w-5 place-items-center rounded-full text-[0.7rem]"
+          style="background: var(--color-void); border: 1px solid var(--color-magenta);"
+        >
+          🤰
+        </span>
+      {/if}
+      {#if cat.gender}
+        <span
+          class="absolute -right-1 -bottom-1 grid h-5 w-5 place-items-center rounded-full text-[0.7rem]"
+          style="background: var(--color-void); border: 1px solid {cat.gender === 'female'
+            ? 'var(--color-magenta)'
+            : 'var(--color-cyan)'}; color: {cat.gender === 'female'
+            ? 'var(--color-magenta)'
+            : 'var(--color-cyan)'};"
+          title={cat.gender}
+        >
+          {GENDER_SYMBOL[cat.gender]}
+        </span>
+      {/if}
+    </div>
     <p
       class="w-full truncate text-center font-bold"
       style="font-family: var(--font-display); color: var(--color-gold); font-size: 0.8rem;"
@@ -85,7 +131,7 @@
     </p>
     <p class="font-retro text-[0.5rem]" style="color: var(--color-silver); opacity: 0.7;">
       {mood ?? ''}
-      {cat.domestication_points} pts
+      {age === null ? '' : m.cat_age({ days: age })}
     </p>
     {#if illnessName}
       <p
@@ -115,14 +161,41 @@
       ? 'rgba(255,0,128,0.45)'
       : 'rgba(155,0,255,0.4)'};"
   >
-    <img
-      src={cat.image_url}
-      alt={cat.name}
-      width="56"
-      height="56"
-      class="rounded-full object-cover"
-      style="width:56px;height:56px;border:2px solid var(--color-cyan);box-shadow:0 0 8px var(--color-cyan);"
-    />
+    <div class="relative shrink-0">
+      <img
+        src={cat.image_url}
+        alt={cat.name}
+        width="56"
+        height="56"
+        class="rounded-full object-cover"
+        style="width:56px;height:56px;border:2px solid {expecting
+          ? 'var(--color-magenta)'
+          : 'var(--color-cyan)'};box-shadow:0 0 8px {expecting
+          ? 'var(--color-magenta)'
+          : 'var(--color-cyan)'};"
+      />
+      {#if expecting}
+        <span
+          class="absolute -top-1 -left-1 grid h-5 w-5 place-items-center rounded-full text-[0.7rem]"
+          style="background: var(--color-void); border: 1px solid var(--color-magenta);"
+        >
+          🤰
+        </span>
+      {/if}
+      {#if cat.gender}
+        <span
+          class="absolute -right-1 -bottom-1 grid h-5 w-5 place-items-center rounded-full text-[0.7rem]"
+          style="background: var(--color-void); border: 1px solid {cat.gender === 'female'
+            ? 'var(--color-magenta)'
+            : 'var(--color-cyan)'}; color: {cat.gender === 'female'
+            ? 'var(--color-magenta)'
+            : 'var(--color-cyan)'};"
+          title={cat.gender}
+        >
+          {GENDER_SYMBOL[cat.gender]}
+        </span>
+      {/if}
+    </div>
     <div class="min-w-0 flex-1">
       <p
         class="truncate font-bold"
@@ -135,7 +208,9 @@
         style="color: var(--color-silver); opacity: 0.7;"
       >
         {mood ?? ''}
-        {cat.domestication_points} pts · {formatted}
+        {age === null ? formatted : m.cat_age({ days: age })} · {cat.origin === 'born'
+          ? m.cat_born()
+          : m.cat_tamed()}
       </p>
       {#if illnessName && state?.illness}
         <p class="font-retro truncate text-[0.55rem]" style="color: var(--color-magenta);">

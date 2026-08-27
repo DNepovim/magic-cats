@@ -1,5 +1,6 @@
 <script lang="ts">
   import { m } from '$lib/paraglide/messages';
+  import { GENDER_SYMBOL } from '$lib/game/mating';
   import type { CatEntity } from '$lib/game/types';
 
   const {
@@ -81,6 +82,16 @@
             class="starburst"
             style="width:220px;height:220px;top:50%;left:50%;transform:translate(-50%,-50%);"
           ></div>
+          <span
+            class="absolute right-0 bottom-0 z-10 grid h-9 w-9 place-items-center rounded-full text-lg"
+            style="background: var(--color-void); border: 2px solid {cat.gender === 'female'
+              ? 'var(--color-magenta)'
+              : 'var(--color-cyan)'}; color: {cat.gender === 'female'
+              ? 'var(--color-magenta)'
+              : 'var(--color-cyan)'};"
+          >
+            {GENDER_SYMBOL[cat.gender]}
+          </span>
           <img
             src={cat.imageUrl}
             alt=""

@@ -3,11 +3,15 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 type RunRow = { id: string; seed: number; started_at: string };
+type Payload = { breeding_id?: string };
 
 /** Opens a run and hands out its seed. The schedule is derived from the seed
  *  on both sides — see $lib/game/supply. */
-export const POST: RequestHandler = async ({ locals }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) throw error(401, 'Not signed in');
+
+  const body = (await request.json().catch(() => null)) as Payload | null;
+  const breedingId = typeof body?.breeding_id === 'string' ? body.breeding_id : null;
 
   const { data: last } = await locals.supabase
     .from('supply_runs')
@@ -27,7 +31,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 
   const { data, error: dbError } = await locals.supabase
     .from('supply_runs')
-    .insert({ user_id: locals.user.id, seed })
+    .insert({ user_id: locals.user.id, seed, breeding_id: breedingId })
     .select('id, seed, started_at')
     .single<RunRow>();
 

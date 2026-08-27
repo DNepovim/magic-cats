@@ -1,6 +1,8 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
   import CatCard from '$lib/components/CatCard.svelte';
+  import ShelfExchange from '$lib/components/ShelfExchange.svelte';
+  import { ITEMS } from '$lib/game/items';
   import PageNav from '$lib/components/PageNav.svelte';
   import Sparkles from '$lib/components/Sparkles.svelte';
   import { m } from '$lib/paraglide/messages';
@@ -81,6 +83,14 @@
       m.breeding_invite_failed(),
     );
 
+  let exchangeOpen = $state(false);
+
+  const moveItem = (breedingId: string, itemId: string, action: 'donate' | 'take') =>
+    send(`/api/breedings/${breedingId}/items`, json({ item_id: itemId, action }), m.shelf_failed());
+
+  /** What is on the shelf right now. */
+  const onShelf = $derived(ITEMS.filter((item) => (data.shelf[item.id] ?? 0) > 0));
+
   const decide = (requestId: string, action: 'accept' | 'reject') =>
     send(
       `/api/breedings/${data.breeding.id}/requests/${requestId}`,
@@ -109,6 +119,18 @@
 
   const formatWhen = (iso: string) => new Date(iso).toLocaleString();
 </script>
+
+{#if exchangeOpen}
+  <ShelfExchange
+    breedings={[{ id: data.breeding.id, name: data.breeding.name }]}
+    breedingId={data.breeding.id}
+    myStock={data.myStock}
+    shelves={{ [data.breeding.id]: data.shelf }}
+    {busy}
+    onMove={moveItem}
+    onClose={() => (exchangeOpen = false)}
+  />
+{/if}
 
 <section
   class="relative min-h-screen overflow-hidden px-4 py-10"
@@ -402,6 +424,81 @@
         {/if}
       </aside>
     </div>
+
+    <!-- shared shelf, laid out like the pantry on the dashboard -->
+    {#if data.isMember}
+      <div
+        class="flex flex-col gap-3 rounded-xl p-4"
+        style="background: rgba(8,0,26,0.55); border: 1px dashed var(--color-lime);"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <p class="font-retro text-xs" style="color: var(--color-lime);">{m.shelf_title()}</p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onclick={() => (exchangeOpen = true)}
+              class="font-retro rounded-md px-3 py-2 text-[0.55rem]"
+              style="color: var(--color-lime); background: rgba(255,255,255,0.04); border: 1px solid var(--color-lime);"
+            >
+              {m.shelf_share_items()}
+            </button>
+            <a
+              href="/supply?for={data.breeding.id}"
+              class="font-retro rounded-md px-3 py-2 text-[0.55rem]"
+              style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
+            >
+              {m.supply_link()}
+            </a>
+          </div>
+        </div>
+
+        {#if onShelf.length === 0}
+          <p class="font-cursive text-base" style="color: var(--color-silver); opacity: 0.7;">
+            {m.shelf_empty()}
+          </p>
+        {:else}
+          <ul class="flex flex-wrap items-end gap-3">
+            {#each onShelf as item (item.id)}
+              {@const count = data.shelf[item.id] ?? 0}
+              <li class="relative w-11" style="height: {40 + (Math.min(count, 5) - 1) * 7}px;">
+                {#each Array(Math.min(count, 5) - 1) as _, depth (depth)}
+                  <span
+                    class="absolute grid h-10 w-11 place-items-center rounded-md text-lg"
+                    style="bottom: {depth * 7}px; left: {depth % 2 === 0
+                      ? 0
+                      : 2}px; background: rgba(255,255,255,0.05); border: 1px solid var(--color-lime); opacity: {0.35 +
+                      depth * 0.06};"
+                    aria-hidden="true"
+                  >
+                    {item.emoji}
+                  </span>
+                {/each}
+                <button
+                  type="button"
+                  onclick={() => moveItem(data.breeding.id, item.id, 'take')}
+                  disabled={busy}
+                  title={m.shelf_take()}
+                  class="absolute grid h-10 w-11 place-items-center rounded-md text-lg disabled:opacity-40"
+                  style="bottom: {(Math.min(count, 5) - 1) *
+                    7}px; background: rgba(8,0,26,0.9); border: 1px solid var(--color-lime);"
+                >
+                  {item.emoji}
+                  {#if count > 1}
+                    <span
+                      class="font-retro absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[0.5rem]"
+                      style="background: var(--color-void); border: 1px solid var(--color-silver); color: var(--color-silver);"
+                      aria-hidden="true"
+                    >
+                      {count}
+                    </span>
+                  {/if}
+                </button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+    {/if}
 
     <!-- forum -->
     <div class="mt-2">

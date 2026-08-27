@@ -108,9 +108,31 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         .returns<Pick<CatRow, 'id' | 'name' | 'image_url' | 'owner_user_id'>[]>()
     : { data: [] as Pick<CatRow, 'id' | 'name' | 'image_url' | 'owner_user_id'>[] };
 
+  // The shared shelf, and what you personally have to put on it. Both are
+  // member-only: RLS returns nothing here to anyone else.
+  const { data: shelf } = isMember
+    ? await locals.supabase
+        .from('breeding_items')
+        .select('item_id, quantity')
+        .eq('breeding_id', params.id)
+        .gt('quantity', 0)
+        .returns<{ item_id: string; quantity: number }[]>()
+    : { data: [] as { item_id: string; quantity: number }[] };
+
+  const { data: myItems } = isMember
+    ? await locals.supabase
+        .from('user_items')
+        .select('item_id, quantity')
+        .eq('user_id', locals.user.id)
+        .gt('quantity', 0)
+        .returns<{ item_id: string; quantity: number }[]>()
+    : { data: [] as { item_id: string; quantity: number }[] };
+
   return {
     breeding,
     cats,
+    shelf: Object.fromEntries((shelf ?? []).map((row) => [row.item_id, row.quantity])),
+    myStock: Object.fromEntries((myItems ?? []).map((row) => [row.item_id, row.quantity])),
     /** Open invites the admin has sent. */
     sentInvites: isAdmin ? openInvites : [],
     /** Open invites addressed to you. */

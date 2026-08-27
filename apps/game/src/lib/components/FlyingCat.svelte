@@ -1,5 +1,6 @@
 <script lang="ts">
   import { THRESHOLD } from '$lib/game/constants';
+  import { GENDER_SYMBOL } from '$lib/game/mating';
   import type { CatEntity } from '$lib/game/types';
 
   const { cat }: { cat: CatEntity } = $props();
@@ -25,15 +26,27 @@
   </div>
 
   <!-- the cat -->
-  <img
-    src={cat.imageUrl}
-    alt=""
-    width={cat.size}
-    height={cat.size}
-    draggable="false"
-    class="rounded-xl object-cover"
-    style="width:{cat.size}px;height:{cat.size}px;border:2px solid var(--color-gold);box-shadow:0 0 12px var(--color-magic),0 0 24px var(--color-magenta);"
-  />
+  <div class="relative">
+    <img
+      src={cat.imageUrl}
+      alt=""
+      width={cat.size}
+      height={cat.size}
+      draggable="false"
+      class="rounded-xl object-cover"
+      style="width:{cat.size}px;height:{cat.size}px;border:2px solid var(--color-gold);box-shadow:0 0 12px var(--color-magic),0 0 24px var(--color-magenta);"
+    />
+    <span
+      class="absolute -right-1 -bottom-1 grid h-5 w-5 place-items-center rounded-full text-[0.7rem]"
+      style="background: var(--color-void); border: 1px solid {cat.gender === 'female'
+        ? 'var(--color-magenta)'
+        : 'var(--color-cyan)'}; color: {cat.gender === 'female'
+        ? 'var(--color-magenta)'
+        : 'var(--color-cyan)'};"
+    >
+      {GENDER_SYMBOL[cat.gender]}
+    </span>
+  </div>
 
   <span
     class="font-retro"

@@ -3,6 +3,8 @@
     CURE_SATIETY,
     MOOD_EMOJI,
     STAT_MAX,
+    ageInDays,
+    cuddleCooldownLeft,
     formatCountdown,
     hungerTier,
     isNight,
@@ -12,26 +14,36 @@
     wakesAt,
   } from '$lib/game/care';
   import { ILLNESS_EMOJI } from '$lib/game/items';
+  import { GENDER_SYMBOL } from '$lib/game/mating';
+  import { pregnancyProgress } from '$lib/game/care';
   import { m } from '$lib/paraglide/messages';
   import { getLocale } from '$lib/paraglide/runtime';
   import type { CatBreeding, CatRow } from '$lib/supabase/types';
 
   const {
     cat,
+    parents = null,
     breeding = null,
     busy = false,
+    cuddling = false,
     note = '',
     savingNote = false,
     onDropItem,
+    onCuddle,
     onSaveNote,
   }: {
     cat: CatRow;
+    /** Her mother and father, for a cat born here. */
+    parents?: { mother: string | null; father: string | null } | null;
     breeding?: CatBreeding | null;
     busy?: boolean;
+    /** True while the cuddle animation is running. */
+    cuddling?: boolean;
     /** Your private note on this cat, as stored. */
     note?: string;
     savingNote?: boolean;
     onDropItem: (itemId: string) => void;
+    onCuddle: () => void;
     onSaveNote: (body: string) => void;
   } = $props();
 
@@ -62,6 +74,10 @@
   const condition = $derived(simulate(cat, now));
   const petLeft = $derived(petCooldownLeft(cat, now));
   const asleep = $derived(isNight(now));
+  const carrying = $derived(pregnancyProgress(cat, now));
+  const dueIn = $derived(cat.due_at ? Math.max(0, Date.parse(cat.due_at) - now) : 0);
+  const cuddleLeft = $derived(cuddleCooldownLeft(cat, now));
+  const age = $derived(Math.floor(ageInDays(cat.birth_at, now)));
   const wakesIn = $derived(Math.max(0, wakesAt(now) - now));
 
   const mood = $derived(
@@ -174,17 +190,52 @@
         class="starburst"
         style="width:300px;height:300px;top:50%;left:50%;transform:translate(-50%,-50%);"
       ></div>
+      {#if carrying !== null}
+        <span
+          class="expecting absolute top-2 left-2 z-10 grid h-9 w-9 place-items-center rounded-full text-lg"
+          style="background: var(--color-void); border: 2px solid var(--color-magenta); color: var(--color-magenta);"
+          title={m.pregnancy_expecting({ percent: Math.round(carrying * 100) })}
+        >
+          🤰
+        </span>
+      {/if}
+
+      <span
+        class="absolute right-2 bottom-2 z-10 grid h-9 w-9 place-items-center rounded-full text-lg"
+        style="background: var(--color-void); border: 2px solid {cat.gender === 'female'
+          ? 'var(--color-magenta)'
+          : 'var(--color-cyan)'}; color: {cat.gender === 'female'
+          ? 'var(--color-magenta)'
+          : 'var(--color-cyan)'};"
+        title={cat.gender}
+      >
+        {GENDER_SYMBOL[cat.gender]}
+      </span>
+      {#if cuddling}
+        {#each [0, 1, 2, 3] as heart (heart)}
+          <span class="cuddle-heart" style="--delay: {heart * 0.14}s; --drift: {(heart - 1.5) * 34}px;"
+            >💗</span
+          >
+        {/each}
+      {/if}
       <img
         src={cat.image_url}
         alt={cat.name}
         width="220"
         height="220"
         class="float-anim relative rounded-full object-cover"
+        class:squeeze={cuddling}
         style="width:220px;height:220px;border:4px solid {dragOver
           ? 'var(--color-lime)'
-          : 'var(--color-gold)'};box-shadow:0 0 30px {dragOver
+          : carrying !== null
+            ? 'var(--color-magenta)'
+            : 'var(--color-gold)'};box-shadow:0 0 30px {dragOver
           ? 'var(--color-lime)'
-          : 'var(--color-gold)'},0 0 60px var(--color-magic);"
+          : carrying !== null
+            ? 'var(--color-magenta)'
+            : 'var(--color-gold)'},0 0 {carrying !== null
+          ? 30 + carrying * 60
+          : 60}px var(--color-magic);"
       />
 
     </div>
@@ -221,6 +272,20 @@
       </div>
     {/if}
 
+    {#if carrying !== null}
+      <div
+        class="w-full rounded-lg px-3 py-2 text-center"
+        style="background: rgba(40,0,30,0.6); border: 1px solid var(--color-magenta);"
+      >
+        <p class="font-retro text-[0.6rem]" style="color: var(--color-magenta);">
+          🤰 {m.pregnancy_expecting({ percent: Math.round(carrying * 100) })}
+        </p>
+        <p class="font-cursive text-base" style="color: var(--color-silver);">
+          {m.pregnancy_due({ time: formatCountdown(dueIn) })}
+        </p>
+      </div>
+    {/if}
+
     {#if condition.illness && illnessName}
       <div
         class="w-full rounded-lg px-3 py-2 text-center"
@@ -241,8 +306,16 @@
     {@render pips(m.care_satiety(), condition.satiety, '🐟')}
     {@render pips(m.care_happiness(), condition.happiness, '💗')}
 
-    <p class="font-retro text-xs" style="color: var(--color-silver); opacity: 0.7;">
-      {m.cat_tamed_with({ points: cat.domestication_points })} · {formatted}
+    <p class="font-retro text-center text-xs" style="color: var(--color-silver); opacity: 0.7;">
+      {m.cat_age({ days: age })} ·
+      {#if cat.origin === 'born'}
+        {m.cat_born_to({
+          mother: parents?.mother ?? m.cat_unknown_parent(),
+          father: parents?.father ?? m.cat_unknown_parent(),
+        })}
+      {:else}
+        {m.cat_tamed_on({ date: formatted })}
+      {/if}
     </p>
 
     {#if breeding}
@@ -254,6 +327,16 @@
         🏰 {breeding.name}
       </a>
     {/if}
+
+    <button
+      type="button"
+      onclick={onCuddle}
+      disabled={busy || asleep || cuddleLeft > 0}
+      class="font-retro w-full rounded-md px-3 py-3 text-[0.6rem] disabled:opacity-40"
+      style="color: var(--color-void); background: var(--color-magenta); border: 1px solid var(--color-magenta);"
+    >
+      {cuddleLeft > 0 ? `🤗 ${formatCountdown(cuddleLeft)}` : m.care_cuddle()}
+    </button>
 
     {#if asleep || condition.illness || petLeft > 0}
       <span
@@ -324,9 +407,66 @@
     transform: scale(1.04);
   }
 
+  .expecting {
+    animation: expecting-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes expecting-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.12);
+    }
+  }
+
+  .squeeze {
+    animation: squeeze 0.45s ease-in-out 2;
+  }
+
+  @keyframes squeeze {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(0.94);
+    }
+  }
+
+  .cuddle-heart {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    font-size: 1.5rem;
+    pointer-events: none;
+    animation: cuddle-rise 1.2s ease-out var(--delay) both;
+  }
+
+  @keyframes cuddle-rise {
+    0% {
+      transform: translate(-50%, 0) scale(0.5);
+      opacity: 0;
+    }
+    25% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(calc(-50% + var(--drift)), -120px) scale(1.1);
+      opacity: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .drop-zone {
       transition: none;
+    }
+
+    .squeeze,
+    .cuddle-heart,
+    .expecting {
+      animation: none;
     }
   }
 </style>

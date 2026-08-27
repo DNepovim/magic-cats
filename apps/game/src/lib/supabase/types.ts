@@ -1,4 +1,5 @@
 import type { Illness } from '$lib/game/items';
+import type { Gender } from '$lib/game/mating';
 
 export type CatRow = {
   id: string;
@@ -17,6 +18,23 @@ export type CatRow = {
   taste_seed: number;
   last_petted_at: string | null;
   last_played_at: string | null;
+  last_cuddled_at: string | null;
+  gender: Gender;
+  /** Set while she is expecting. */
+  pregnant_since: string | null;
+  due_at: string | null;
+  last_mated_at: string | null;
+  mother_cat_id: string | null;
+  father_cat_id: string | null;
+  /** When she was born — her age is real time since this. */
+  birth_at: string;
+  /** Days she is expected to live. */
+  lifespan_days: number;
+  origin: 'tamed' | 'born';
+  /** Set once she has died of old age; the row stays for the family tree. */
+  died_at: string | null;
+  /** False for a newborn kitten until her owner names her. */
+  named: boolean;
 };
 
 /** A private note on a cat. Only the cat's owner can read or write it. */
@@ -25,6 +43,13 @@ export type CatNoteRow = {
   owner_user_id: string;
   body: string;
   updated_at: string;
+};
+
+/** A player's own name, shown instead of their email. */
+export type ProfileRow = {
+  user_id: string;
+  username: string;
+  created_at: string;
 };
 
 export type UserItemRow = {
@@ -42,6 +67,14 @@ export type CatGameRow = {
   challenger_score: number;
   opponent_score: number;
   played_at: string;
+};
+
+/** Something waiting on the player, shown at the top of the dashboard. */
+export type DashboardAlert = {
+  kind: 'request' | 'invite';
+  breeding_id: string;
+  breeding_name: string;
+  cat_name: string;
 };
 
 /** A played game, with both cats named for the results feed. */

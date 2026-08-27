@@ -20,12 +20,28 @@ export type SimInput = {
   happiness: number;
   state_at: string;
   illness: Illness | null;
+  /** Set while she is expecting; drives appetite and mood below. */
+  pregnant_since?: string | null;
+  due_at?: string | null;
+  /** Drives appetite over her life, and how easily illness finds her. */
+  birth_at?: string | null;
+  lifespan_days?: number | null;
+};
+
+/** How far along she is, 0…1, or null if she is not expecting. */
+export const pregnancyProgress = (cat: SimInput, now = Date.now()): number | null => {
+  if (!cat.pregnant_since || !cat.due_at) return null;
+  const from = Date.parse(cat.pregnant_since);
+  const to = Date.parse(cat.due_at);
+  if (!(to > from)) return null;
+  return Math.max(0, Math.min(1, (now - from) / (to - from)));
 };
 
 /** Everything an action needs on top of that. */
 export type CatState = SimInput & {
   taste_seed: number;
   last_petted_at: string | null;
+  last_cuddled_at?: string | null;
 };
 
 export const STAT_MAX = 100;
@@ -52,6 +68,44 @@ export const ILL_DECAY_MULTIPLIER = 2;
 
 export const PET_HAPPINESS = 10;
 export const PET_COOLDOWN_MS = 30 * 60_000;
+
+/** A cuddle asks less of her than a game, and can be had more often. */
+export const CUDDLE_HAPPINESS = 6;
+export const CUDDLE_COOLDOWN_MS = 20 * 60_000;
+
+// ── Age ───────────────────────────────────────────────────────────────────
+/** A cat you tame was already this old when you caught her. */
+export const TAMED_AGE_MIN_DAYS = 10;
+export const TAMED_AGE_MAX_DAYS = 40;
+
+/** Past this age, illness starts finding her more easily. */
+export const OLD_AGE_DAYS = 50;
+
+const DAY = 24 * 60 * 60_000;
+
+export const ageInDays = (birthAt: string, now = Date.now()): number =>
+  Math.max(0, (now - Date.parse(birthAt)) / DAY);
+
+/**
+ * Appetite over a life: a kitten picks at her food, an old cat loses interest,
+ * and in between she eats properly. Peaks at half her expected span.
+ */
+export const appetiteForAge = (ageDays: number, lifespanDays: number): number => {
+  const throughLife = Math.max(0, Math.min(1, ageDays / Math.max(1, lifespanDays)));
+  return 0.6 + Math.sin(throughLife * Math.PI) * 0.8;
+};
+
+/** Age tells on her: past OLD_AGE_DAYS illness comes twice as readily by 100. */
+export const frailtyForAge = (ageDays: number): number =>
+  1 + Math.max(0, ageDays - OLD_AGE_DAYS) / OLD_AGE_DAYS;
+
+// ── Pregnancy ─────────────────────────────────────────────────────────────
+/** Roughly nine days, the real thing being about nine weeks. */
+export const PREGNANCY_MS = 9 * 24 * 60 * 60_000;
+/** Eating for a litter: hunger climbs to this multiple by full term. */
+export const PREGNANCY_APPETITE = 2;
+/** How far her mood swings either way as the weeks pass. */
+export const PREGNANCY_MOOD_SWING = 3;
 
 // ── Night ─────────────────────────────────────────────────────────────────
 // Cats sleep at night: they stop getting hungry, their mood slowly climbs, and
@@ -145,7 +199,15 @@ export const simulate = (cat: SimInput, now = Date.now()): SimulatedCat => {
 
     // Asleep she does not get hungry at all, ill or not.
     if (!asleep) {
-      const decay = SATIETY_DECAY_PER_HOUR * (illness ? ILL_DECAY_MULTIPLIER : 1);
+      // Expecting, she eats for the litter — steadily more as term nears — and
+      // her age sets the baseline: least as a kitten and in old age.
+      const carrying = pregnancyProgress(cat, at);
+      const expecting = carrying === null ? 1 : 1 + carrying * (PREGNANCY_APPETITE - 1);
+      const byAge = cat.birth_at
+        ? appetiteForAge(ageInDays(cat.birth_at, at), cat.lifespan_days ?? 100)
+        : 1;
+      const decay =
+        SATIETY_DECAY_PER_HOUR * (illness ? ILL_DECAY_MULTIPLIER : 1) * expecting * byAge;
       satiety = clamp(satiety - decay * stepHours);
     }
 
@@ -154,11 +216,22 @@ export const simulate = (cat: SimInput, now = Date.now()): SimulatedCat => {
       : satiety >= SATIETY_THRESHOLD
         ? HAPPINESS_RISE_PER_HOUR
         : -HAPPINESS_FALL_PER_HOUR;
-    happiness = clamp(happiness + drift * stepHours - (illness ? ILL_HAPPINESS_PER_HOUR * stepHours : 0));
+    // Her mood wanders while she is expecting: some days blissful, some days
+    // nobody may touch her. A sine of the elapsed time, so the replay stays pure.
+    const carrying = pregnancyProgress(cat, at);
+    const swing =
+      carrying === null ? 0 : Math.sin((at / HOUR / 18) * Math.PI) * PREGNANCY_MOOD_SWING;
+
+    happiness = clamp(
+      happiness +
+        (drift + swing) * stepHours -
+        (illness ? ILL_HAPPINESS_PER_HOUR * stepHours : 0),
+    );
 
     if (!illness) {
       const random = rng(seedBase + step);
-      if (random() < illnessChancePerHour(satiety, happiness) * stepHours) {
+      const frailty = cat.birth_at ? frailtyForAge(ageInDays(cat.birth_at, at)) : 1;
+      if (random() < illnessChancePerHour(satiety, happiness) * frailty * stepHours) {
         illness = ILLNESSES[Math.floor(random() * ILLNESSES.length)] ?? ILLNESSES[0];
         illSince = from + (step + 1) * STEP_MS;
       }
@@ -298,6 +371,32 @@ export const applyPlay = (
   return {
     ok: true,
     snapshot: snapshot({ ...current, happiness: clamp(current.happiness + gain) }, now),
+  };
+};
+
+export const cuddleCooldownLeft = (
+  cat: Pick<CatState, 'last_cuddled_at'>,
+  now = Date.now(),
+): number =>
+  cat.last_cuddled_at === null || cat.last_cuddled_at === undefined
+    ? 0
+    : Math.max(0, Date.parse(cat.last_cuddled_at) + CUDDLE_COOLDOWN_MS - now);
+
+/**
+ * A cuddle. Refused while she sleeps — that is the one thing you do not wake a
+ * cat for — but welcome while she is ill, when there is little else to offer.
+ */
+export const applyCuddle = (
+  cat: SimInput & Pick<CatState, 'last_cuddled_at'>,
+  now = Date.now(),
+): PlayOutcome => {
+  if (isNight(now)) return { ok: false, reason: 'asleep' };
+  if (cuddleCooldownLeft(cat, now) > 0) return { ok: false, reason: 'resting' };
+
+  const current = simulate(cat, now);
+  return {
+    ok: true,
+    snapshot: snapshot({ ...current, happiness: clamp(current.happiness + CUDDLE_HAPPINESS) }, now),
   };
 };
 

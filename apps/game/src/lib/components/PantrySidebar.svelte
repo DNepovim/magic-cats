@@ -9,7 +9,10 @@
     cat,
     busy = false,
     supplyReadyAt = null,
+    shelfBreedings = [],
+    canShare = false,
     onUse,
+    onOpenExchange,
   }: {
     /** item id → how many you have. */
     stock: Record<string, number>;
@@ -18,7 +21,12 @@
     busy?: boolean;
     /** When the next supply run may start, or null if one may start now. */
     supplyReadyAt?: string | null;
+    /** Breedings whose shared shelf this player may use. */
+    shelfBreedings?: { id: string; name: string }[];
+    /** Whether there is anyone to share with at all. */
+    canShare?: boolean;
     onUse: (itemId: string) => void;
+    onOpenExchange?: () => void;
   } = $props();
 
   // A countdown has to tick, so the clock is state rather than a render-time read.
@@ -120,6 +128,15 @@
               )};"
             >
               {item.emoji}
+      {#if stock[item.id] > 1}
+        <span
+          class="font-retro absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[0.5rem]"
+          style="background: var(--color-void); border: 1px solid var(--color-silver); color: var(--color-silver);"
+          aria-hidden="true"
+        >
+          {stock[item.id]}
+        </span>
+      {/if}
               {#if medicineReady(item)}
                 <span
                   class="absolute -top-1 -right-1 text-[0.6rem]"
@@ -140,6 +157,17 @@
 >
   <div class="flex items-center justify-between gap-2">
     <p class="font-retro text-xs" style="color: var(--color-cyan);">{m.supply_pantry()}</p>
+    {#if canShare && onOpenExchange}
+      <button
+        type="button"
+        onclick={onOpenExchange}
+        class="font-retro rounded-md px-3 py-2 text-[0.55rem]"
+        style="color: var(--color-lime); background: rgba(255,255,255,0.04); border: 1px solid var(--color-lime);"
+      >
+        {m.shelf_share_items()}
+      </button>
+    {/if}
+
     {#if runReadyIn > 0}
       <!-- Still restocking: say when, and do not offer a trip that the start
            endpoint would only refuse. -->

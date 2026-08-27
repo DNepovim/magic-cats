@@ -96,7 +96,11 @@
     error = null;
     haul = null;
     try {
-      const res = await fetch('/api/supply/start', { method: 'POST' });
+      const res = await fetch('/api/supply/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ breeding_id: data.forBreeding?.id ?? null }),
+      });
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as { message?: string } | null;
         throw new Error(body?.message ?? m.supply_failed());
@@ -178,6 +182,11 @@
         {m.supply_title()}
       </h1>
       <p class="font-cursive text-lg" style="color: var(--color-cyan);">{m.supply_subtitle()}</p>
+      {#if data.forBreeding}
+        <p class="font-retro mt-1 text-[0.6rem]" style="color: var(--color-lime);">
+          🏰 {m.supply_for_breeding({ name: data.forBreeding.name })}
+        </p>
+      {/if}
     </header>
 
     <!-- field -->

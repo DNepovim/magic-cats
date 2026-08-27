@@ -1,8 +1,11 @@
+import type { Gender } from './mating';
+
 import type { FoodTypeId } from './foods';
 
 export type CatEntity = {
   id: string;
   imageUrl: string;
+  gender: Gender;
   x: number;
   y: number;
   vx: number;

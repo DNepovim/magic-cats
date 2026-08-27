@@ -4,7 +4,13 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 type Payload = { run_id?: string; caught?: number[] };
-type RunRow = { id: string; seed: number; started_at: string; finished_at: string | null };
+type RunRow = {
+  id: string;
+  seed: number;
+  started_at: string;
+  finished_at: string | null;
+  breeding_id: string | null;
+};
 
 /**
  * Hands a run in. The claimed catches are checked against the schedule the
@@ -21,7 +27,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   const { data: run } = await locals.supabase
     .from('supply_runs')
-    .select('id, seed, started_at, finished_at')
+    .select('id, seed, started_at, finished_at, breeding_id')
     .eq('id', runId)
     .eq('user_id', locals.user.id)
     .maybeSingle<RunRow>();
@@ -38,7 +44,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   const totals = new Map<string, number>();
   for (const itemId of granted) totals.set(itemId, (totals.get(itemId) ?? 0) + 1);
 
-  if (totals.size > 0) {
+  if (totals.size > 0 && run.breeding_id) {
+    // A run made for a breeding stocks its shelf; the runner keeps nothing.
+    for (const [itemId, count] of totals) {
+      const { error: shelfError } = await locals.supabase.rpc('credit_breeding_shelf', {
+        b_id: run.breeding_id,
+        item: itemId,
+        qty: count,
+      });
+      if (shelfError) throw error(409, shelfError.message);
+    }
+  } else if (totals.size > 0) {
     const { data: existing } = await locals.supabase
       .from('user_items')
       .select('*')

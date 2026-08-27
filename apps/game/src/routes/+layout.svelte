@@ -1,6 +1,7 @@
 <script lang="ts">
   import { browser } from '$app/environment';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
+  import WhatsNew from '$lib/components/WhatsNew.svelte';
   import { inject } from '@vercel/analytics';
   import '../app.css';
   import type { LayoutData } from './$types';
@@ -13,5 +14,7 @@
 <div class="fixed top-3 right-3 z-50">
   <LanguageSwitcher current={data.locale} />
 </div>
+
+<WhatsNew />
 
 {@render children()}

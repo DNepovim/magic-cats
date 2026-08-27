@@ -18,6 +18,7 @@ export const spawnCat = (
   return {
     id: uid(),
     imageUrl,
+    gender: Math.random() < 0.5 ? 'male' : 'female',
     x: fromHorizontal ? -CAT_SIZE : rand(0, bounds.width - CAT_SIZE),
     y: fromHorizontal ? rand(80, bounds.height - CAT_SIZE - 80) : -CAT_SIZE,
     vx: fromHorizontal ? speed : speed * Math.sin(angle),

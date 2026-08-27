@@ -5,6 +5,7 @@ import { canonicalCatImageUrl } from '$lib/game/images';
 
 type Payload = {
   name?: string;
+  gender?: 'male' | 'female';
   image_url?: string;
   domestication_points?: number;
 };
@@ -51,6 +52,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       owner_user_id: locals.user.id,
       name,
       image_url: canonicalUrl,
+      // A cat caught before this shipped simply gets one at random, as the
+      // migration did for the cats that already existed.
+      gender: body.gender === 'male' || body.gender === 'female' ? body.gender : undefined,
       domestication_points: points,
     })
     .select('*')

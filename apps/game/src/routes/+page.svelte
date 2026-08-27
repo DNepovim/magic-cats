@@ -21,6 +21,13 @@
     stock={data.stock}
     notes={data.notes}
     supplyReadyAt={data.supplyReadyAt}
+    alerts={data.alerts}
+    deaths={data.deaths}
+    username={data.username}
+    playerNames={data.playerNames}
+    parents={data.parents}
+    memberBreedings={data.memberBreedings}
+    shelves={data.shelves}
     userEmail={data.user?.email ?? null}
   />
 {/if}
