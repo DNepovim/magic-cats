@@ -56,9 +56,17 @@
 
     const timer = setTimeout(() => onFinish({ indices: cleared }, Date.now() - startedAt), duration + 80);
 
+    // A hidden tab stops animating, so the round would run down unplayed and
+    // unwatched. Hand in what was earned instead of letting it expire.
+    const onHidden = () => {
+      if (document.visibilityState === 'hidden') onFinish({ indices: cleared }, Date.now() - startedAt);
+    };
+    document.addEventListener('visibilitychange', onHidden);
+
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onHidden);
     };
   });
 

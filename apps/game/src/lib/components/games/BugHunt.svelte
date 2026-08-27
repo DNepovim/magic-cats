@@ -31,9 +31,17 @@
     // A backgrounded tab stops animating but the round still has to end.
     const timer = setTimeout(() => onFinish({ indices: caught }, Date.now() - startedAt), duration + 80);
 
+    // A hidden tab stops animating, so the round would run down unplayed and
+    // unwatched. Hand in what was earned instead of letting it expire.
+    const onHidden = () => {
+      if (document.visibilityState === 'hidden') onFinish({ indices: caught }, Date.now() - startedAt);
+    };
+    document.addEventListener('visibilitychange', onHidden);
+
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onHidden);
     };
   });
 
@@ -61,7 +69,12 @@
 {#each visible as { bug, progress } (bug.index)}
   <button
     type="button"
-    onclick={() => pounce(bug.index)}
+    onpointerdown={(event) => {
+      // Not onclick: a click needs press and release on the same element, and a
+      // bug moving 300px a second is long gone by the time the button comes up.
+      event.preventDefault();
+      pounce(bug.index);
+    }}
     aria-label={bug.emoji}
     class="absolute grid place-items-center rounded-full"
     style="left: {(bug.fromX + (bug.toX - bug.fromX) * progress) * 100}%; top: {(bug.fromY +

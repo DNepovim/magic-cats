@@ -14,6 +14,9 @@
   let field = $state<HTMLDivElement | null>(null);
   let ball = $state({ x: 0.5, y: 0.75, vx: 0, vy: 0 });
   let held = $state<{ x: number; y: number; at: number } | null>(null);
+  /** The last few pointer samples — a flick is measured over a window, not
+   *  between the final two move events, which are microseconds apart. */
+  let trail: { x: number; y: number; at: number }[] = [];
   let elapsed = $state(0);
   let volleys = $state(0);
   let batting = $state(false);
@@ -66,9 +69,17 @@
 
     const timer = setTimeout(() => onFinish({ count: volleys }, Date.now() - startedAt), duration + 80);
 
+    // A hidden tab stops animating, so the round would run down unplayed and
+    // unwatched. Hand in what was earned instead of letting it expire.
+    const onHidden = () => {
+      if (document.visibilityState === 'hidden') onFinish({ count: volleys }, Date.now() - startedAt);
+    };
+    document.addEventListener('visibilitychange', onHidden);
+
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onHidden);
     };
   });
 
@@ -81,9 +92,10 @@
   const grab = (event: PointerEvent) => {
     const point = toField(event);
     if (!point) return;
-    if (Math.hypot(point.x - ball.x, point.y - ball.y) > 0.12) return;
+    if (Math.hypot(point.x - ball.x, point.y - ball.y) > 0.16) return;
     event.preventDefault();
     held = { ...point, at: Date.now() };
+    trail = [{ ...point, at: Date.now() }];
     ball = { ...ball, vx: 0, vy: 0 };
   };
 
@@ -93,20 +105,28 @@
     if (!point) return;
     ball = { ...ball, x: point.x, y: point.y };
     held = { ...point, at: Date.now() };
+    trail = [...trail, { ...point, at: Date.now() }].slice(-8);
   };
 
   /** Release velocity is the flick: throw it at her and she will send it back. */
   const release = (event: PointerEvent) => {
     if (!held) return;
     const point = toField(event);
-    const seconds = Math.max(0.016, (Date.now() - held.at) / 1000);
+    const now = Date.now();
+
     if (point) {
+      // Measure the throw across the last ~140ms of movement rather than the
+      // final pair of events, whose delta is near zero however hard you flick.
+      const from = trail.find((sample) => now - sample.at <= 140) ?? trail[0] ?? held;
+      const seconds = Math.max(0.05, (now - from.at) / 1000);
       ball = {
         ...ball,
-        vx: ((point.x - held.x) / seconds) * 0.6,
-        vy: ((point.y - held.y) / seconds) * 0.6,
+        vx: ((point.x - from.x) / seconds) * 0.9,
+        vy: ((point.y - from.y) / seconds) * 0.9,
       };
     }
+
+    trail = [];
     held = null;
   };
 </script>
