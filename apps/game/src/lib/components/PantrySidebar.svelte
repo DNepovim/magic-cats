@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CURE_SATIETY, formatCountdown, simulate } from '$lib/game/care';
+  import { CURE_SATIETY, formatCountdown, isNight, simulate } from '$lib/game/care';
   import { ITEMS, type Item } from '$lib/game/items';
   import { m } from '$lib/paraglide/messages';
   import type { CatRow } from '$lib/supabase/types';
@@ -29,6 +29,7 @@
   });
 
   const runReadyIn = $derived(supplyReadyAt ? Math.max(0, Date.parse(supplyReadyAt) - now) : 0);
+  const asleep = $derived(isNight(now));
 
   const condition = $derived(cat ? simulate(cat) : null);
 
@@ -110,7 +111,7 @@
               draggable="true"
               ondragstart={(event) => startDrag(event, item.id)}
               onclick={() => onUse(item.id)}
-              disabled={busy}
+              disabled={busy || (asleep && item.kind !== 'medicine')}
               title={itemName(item)}
               aria-label={itemName(item)}
               class="absolute grid h-10 w-11 cursor-grab place-items-center rounded-md text-lg active:cursor-grabbing disabled:opacity-40"
@@ -159,6 +160,10 @@
       </a>
     {/if}
   </div>
+
+  {#if asleep}
+    <p class="font-cursive text-base" style="color: var(--color-cyan);">😴 {m.sleep_no_food()}</p>
+  {/if}
 
   {#if owned.length === 0}
     <p class="font-cursive text-base" style="color: var(--color-silver); opacity: 0.7;">

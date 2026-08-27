@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
-  import { formatCountdown, gameCooldownLeft, simulate } from '$lib/game/care';
+  import { formatCountdown, gameCooldownLeft, isNight, simulate } from '$lib/game/care';
   import { MAX_CATS } from '$lib/game/constants';
   import { m } from '$lib/paraglide/messages';
   import { supabase } from '$lib/supabase/client';
@@ -62,6 +62,7 @@
   });
   const playLeft = $derived(selectedCat ? gameCooldownLeft(selectedCat, now) : 0);
   const selectedIsIll = $derived(selectedCat ? simulate(selectedCat, now).illness !== null : false);
+  const catsAsleep = $derived(isNight(now));
 
   const gameKindLabel = (kind: GameFeedItem['kind']) =>
     ({ chase: m.play_kind_chase(), wrestle: m.play_kind_wrestle(), yarn: m.play_kind_yarn() })[kind];
@@ -370,7 +371,11 @@
         <span class="badge-hot">{m.dashboard_live()}</span>
       </div>
 
-      {#if selectedCat && selectedIsIll}
+      {#if catsAsleep}
+        <p class="font-retro mb-2 text-[0.55rem]" style="color: var(--color-cyan);">
+          😴 {m.sleep_no_games()}
+        </p>
+      {:else if selectedCat && selectedIsIll}
         <p class="font-retro mb-2 text-[0.55rem]" style="color: var(--color-magenta);">
           {m.play_too_ill({ cat: selectedCat.name })}
         </p>
@@ -392,7 +397,7 @@
               <button
                 type="button"
                 onclick={() => play(cat.id, cat.name)}
-                disabled={caring || !selectedCat || playLeft > 0 || selectedIsIll}
+                disabled={caring || !selectedCat || playLeft > 0 || selectedIsIll || catsAsleep}
                 class="font-retro w-28 rounded-md px-2 py-2 text-[0.5rem] disabled:opacity-40"
                 style="color: var(--color-cyan); background: rgba(255,255,255,0.04); border: 1px solid var(--color-cyan);"
               >

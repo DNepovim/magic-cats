@@ -1,4 +1,4 @@
-import { applyGame, gameCooldownLeft, resolveGame, simulate } from '$lib/game/care';
+import { applyGame, gameCooldownLeft, isNight, resolveGame, simulate } from '$lib/game/care';
 import type { CatGameRow, CatRow } from '$lib/supabase/types';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
@@ -37,6 +37,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   if (!opponent) throw error(404, 'No such cat');
 
   const now = Date.now();
+  if (isNight(now)) throw error(409, 'She is asleep — come back when she wakes');
   if (gameCooldownLeft(challenger, now) > 0) throw error(429, 'She needs a nap first');
 
   const challengerNow = simulate(challenger, now);

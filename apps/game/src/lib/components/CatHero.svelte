@@ -5,9 +5,11 @@
     STAT_MAX,
     formatCountdown,
     hungerTier,
+    isNight,
     moodTier,
     petCooldownLeft,
     simulate,
+    wakesAt,
   } from '$lib/game/care';
   import { ILLNESS_EMOJI } from '$lib/game/items';
   import { m } from '$lib/paraglide/messages';
@@ -59,6 +61,8 @@
 
   const condition = $derived(simulate(cat, now));
   const petLeft = $derived(petCooldownLeft(cat, now));
+  const asleep = $derived(isNight(now));
+  const wakesIn = $derived(Math.max(0, wakesAt(now) - now));
 
   const mood = $derived(
     {
@@ -115,27 +119,30 @@
     <span class="font-retro text-[0.55rem]" style="color: var(--color-silver); opacity: 0.7;">
       {label}
     </span>
-    <div
-      class="flex gap-1"
+    <div class="flex items-center gap-2">
+      <span class="font-retro text-[0.55rem]" style="color: var(--color-silver);">{value}%</span>
+      <div
+        class="flex gap-1"
       role="meter"
       aria-valuenow={value}
       aria-valuemin={0}
       aria-valuemax={STAT_MAX}
       aria-label={label}
     >
-      {#each Array(PIP_COUNT) as _, pip (pip)}
-        <!-- No transition here: a re-render restarts it, and a half-faded pip
-             would misreport how full she is. -->
-        <span
-          class="text-xl"
-          aria-hidden="true"
-          style="opacity: {pip < filled ? 1 : 0.2}; filter: {pip < filled
-            ? 'drop-shadow(0 0 4px var(--color-magic))'
-            : 'grayscale(1)'};"
-        >
-          {emoji}
-        </span>
-      {/each}
+        {#each Array(PIP_COUNT) as _, pip (pip)}
+          <!-- No transition here: a re-render restarts it, and a half-faded pip
+               would misreport how full she is. -->
+          <span
+            class="text-xl"
+            aria-hidden="true"
+            style="opacity: {pip < filled ? 1 : 0.2}; filter: {pip < filled
+              ? 'drop-shadow(0 0 4px var(--color-magic))'
+              : 'grayscale(1)'};"
+          >
+            {emoji}
+          </span>
+        {/each}
+      </div>
     </div>
   </div>
 {/snippet}
@@ -190,9 +197,29 @@
     </h2>
 
     <p class="font-cursive text-xl" style="color: var(--color-cyan);">
-      {condition.illness ? ILLNESS_EMOJI[condition.illness] : MOOD_EMOJI[moodTier(condition.happiness)]}
-      {mood} · {hunger}
+      {#if asleep}
+        😴 {m.sleep_asleep()} · {hunger}
+      {:else}
+        {condition.illness
+          ? ILLNESS_EMOJI[condition.illness]
+          : MOOD_EMOJI[moodTier(condition.happiness)]}
+        {mood} · {hunger}
+      {/if}
     </p>
+
+    {#if asleep}
+      <div
+        class="w-full rounded-lg px-3 py-2 text-center"
+        style="background: rgba(0,10,40,0.6); border: 1px solid var(--color-cyan);"
+      >
+        <p class="font-retro text-[0.6rem]" style="color: var(--color-cyan);">
+          😴 {m.sleep_title()}
+        </p>
+        <p class="font-cursive text-base" style="color: var(--color-silver);">
+          {m.sleep_wakes({ time: formatCountdown(wakesIn) })}
+        </p>
+      </div>
+    {/if}
 
     {#if condition.illness && illnessName}
       <div
@@ -228,12 +255,14 @@
       </a>
     {/if}
 
-    {#if condition.illness || petLeft > 0}
+    {#if asleep || condition.illness || petLeft > 0}
       <span
         class="font-retro w-full rounded-md px-3 py-3 text-center text-[0.6rem] opacity-40"
         style="color: var(--color-void); background: var(--color-gold); border: 1px solid var(--color-gold);"
       >
-        {#if condition.illness}
+        {#if asleep}
+          {m.care_play_asleep()}
+        {:else if condition.illness}
           {m.care_play_ill()}
         {:else}
           🧶 {formatCountdown(petLeft)}

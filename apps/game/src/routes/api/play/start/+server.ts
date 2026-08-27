@@ -9,6 +9,7 @@ type Payload = { cat_id?: string; game?: GameId };
 const REFUSALS = {
   resting: 'She has had enough playing for now',
   ill: 'She is too ill to play — cure her first',
+  asleep: 'She is asleep — come back when she wakes',
 } as const;
 
 /** Opens a round and hands out its seed. The plan is derived from the seed on

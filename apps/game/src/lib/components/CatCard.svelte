@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MOOD_EMOJI, moodTier, simulate } from '$lib/game/care';
+  import { isNight, MOOD_EMOJI, moodTier, simulate } from '$lib/game/care';
   import { ILLNESS_EMOJI } from '$lib/game/items';
   import { m } from '$lib/paraglide/messages';
   import { getLocale } from '$lib/paraglide/runtime';
@@ -34,9 +34,11 @@
   const mood = $derived(
     state === null
       ? null
-      : state.illness
-        ? ILLNESS_EMOJI[state.illness]
-        : MOOD_EMOJI[moodTier(state.happiness)],
+      : isNight()
+        ? '😴'
+        : state.illness
+          ? ILLNESS_EMOJI[state.illness]
+          : MOOD_EMOJI[moodTier(state.happiness)],
   );
 
   /** Named, not just an emoji: an ill cat should be unmissable in a list. */

@@ -26,6 +26,7 @@ type RoundRow = {
 const REFUSALS = {
   resting: 'She has had enough playing for now',
   ill: 'She is too ill to play — cure her first',
+  asleep: 'She is asleep — come back when she wakes',
 } as const;
 
 /**

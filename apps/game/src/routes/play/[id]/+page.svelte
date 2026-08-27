@@ -8,12 +8,14 @@
   import LaserChase from '$lib/components/games/LaserChase.svelte';
   import YarnRally from '$lib/components/games/YarnRally.svelte';
   import { formatCountdown } from '$lib/game/care';
-  import { GAME_EMOJI, GAME_IDS, type Claim, type GameId } from '$lib/game/play';
+  import { GAME_DURATION_MS, GAME_EMOJI, GAME_IDS, type Claim, type GameId } from '$lib/game/play';
   import { m } from '$lib/paraglide/messages';
   import type { PageData } from './$types';
 
   const { data }: { data: PageData } = $props();
 
+  /** Picked from the list but not started — the rules are showing. */
+  let chosen = $state<GameId | null>(null);
   let round = $state<{ id: string; seed: number; game: GameId } | null>(null);
   let starting = $state(false);
   let error = $state<string | null>(null);
@@ -28,6 +30,15 @@
       boxes: m.play_game_boxes(),
     })[game];
 
+  const rules = (game: GameId) =>
+    ({
+      laser: m.play_rules_laser(),
+      bugs: m.play_rules_bugs(),
+      yarn: m.play_rules_yarn(),
+      brush: m.play_rules_brush(),
+      boxes: m.play_rules_boxes(),
+    })[game];
+
   const hint = (game: GameId) =>
     ({
       laser: m.play_game_laser_hint(),
@@ -38,6 +49,7 @@
     })[game];
 
   async function start(game: GameId) {
+    chosen = null;
     starting = true;
     error = null;
     result = null;
@@ -130,12 +142,56 @@
             />
           {/if}
         {/key}
+      {:else if chosen}
+        <!-- Rules before the round, so nobody learns a game by losing it. -->
+        <div class="absolute inset-0 grid place-items-center p-6">
+          <div class="flex max-w-lg flex-col items-center gap-4 text-center">
+            <span class="text-5xl" aria-hidden="true">{GAME_EMOJI[chosen]}</span>
+            <h2
+              style="font-family: var(--font-display); color: var(--color-gold); font-size: 1.6rem; text-shadow: 0 0 10px var(--color-gold);"
+            >
+              {name(chosen)}
+            </h2>
+            <p class="font-cursive text-lg" style="color: var(--color-silver);">{rules(chosen)}</p>
+            <p class="font-retro text-[0.55rem]" style="color: var(--color-cyan);">
+              ⏱ {m.play_rules_length({ seconds: Math.round(GAME_DURATION_MS[chosen] / 1000) })}
+            </p>
+
+            <div class="flex flex-col items-center gap-2 sm:flex-row">
+              <button
+                type="button"
+                onclick={() => chosen && start(chosen)}
+                disabled={starting}
+                class="btn-magic text-lg disabled:opacity-50"
+              >
+                {m.play_rules_start()}
+              </button>
+              <button
+                type="button"
+                onclick={() => (chosen = null)}
+                class="font-retro text-[0.6rem] underline"
+                style="color: var(--color-silver); opacity: 0.7;"
+              >
+                {m.play_rules_other()}
+              </button>
+            </div>
+
+            {#if error}
+              <p class="font-retro text-[0.6rem]" style="color: var(--color-magenta);">{error}</p>
+            {/if}
+          </div>
+        </div>
       {:else}
         <div class="absolute inset-0 grid place-items-center p-6">
           <div class="flex flex-col items-center gap-4 text-center">
             {#if result}
               <p class="font-cursive text-2xl" style="color: var(--color-lime);">
                 {m.play_result({ score: result.score, gain: result.gain })}
+              </p>
+              <a href="/" class="btn-magic text-lg">{m.play_back()}</a>
+            {:else if data.refusal === 'asleep'}
+              <p class="font-cursive text-xl" style="color: var(--color-cyan);">
+                😴 {m.sleep_no_games()}
               </p>
               <a href="/" class="btn-magic text-lg">{m.play_back()}</a>
             {:else if data.refusal === 'ill'}
@@ -166,13 +222,13 @@
     </div>
 
     <!-- picker -->
-    {#if !round && data.refusal === null}
+    {#if !round && !chosen && data.refusal === null}
       <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {#each GAME_IDS as game (game)}
           <li>
             <button
               type="button"
-              onclick={() => start(game)}
+              onclick={() => (chosen = game)}
               disabled={starting}
               class="flex w-full flex-col items-start gap-1 rounded-xl p-4 text-left transition-opacity hover:opacity-90 disabled:opacity-50"
               style="background: rgba(8,0,26,0.6); border: 2px solid var(--color-magic);"

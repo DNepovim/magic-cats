@@ -53,6 +53,42 @@ export const ILL_DECAY_MULTIPLIER = 2;
 export const PET_HAPPINESS = 10;
 export const PET_COOLDOWN_MS = 30 * 60_000;
 
+// ── Night ─────────────────────────────────────────────────────────────────
+// Cats sleep at night: they stop getting hungry, their mood slowly climbs, and
+// they are not to be woken for food or games.
+//
+// "Night" is the same hours for everybody, in the game's home timezone — the
+// simulation has to be reproducible from a timestamp alone, and a per-player
+// timezone would make one cat's history depend on where it was read. The fixed
+// offset means the boundary drifts by an hour under summer time, which is a
+// price worth paying for a cat that is asleep at a sensible hour.
+export const GAME_UTC_OFFSET_HOURS = 1;
+export const NIGHT_STARTS_HOUR = 22;
+export const NIGHT_ENDS_HOUR = 6;
+
+/** Happiness gained per hour of undisturbed sleep. */
+export const SLEEP_HAPPINESS_PER_HOUR = 3;
+
+const localHour = (at: number): number => {
+  const hours = at / HOUR + GAME_UTC_OFFSET_HOURS;
+  return ((Math.floor(hours) % 24) + 24) % 24;
+};
+
+/** Whether the cats are asleep at this moment. */
+export const isNight = (at = Date.now()): boolean => {
+  const hour = localHour(at);
+  return hour >= NIGHT_STARTS_HOUR || hour < NIGHT_ENDS_HOUR;
+};
+
+/** When they will wake — the next NIGHT_ENDS_HOUR in the game's timezone. */
+export const wakesAt = (at = Date.now()): number => {
+  const hour = localHour(at);
+  const hoursUntil = hour < NIGHT_ENDS_HOUR ? NIGHT_ENDS_HOUR - hour : 24 - hour + NIGHT_ENDS_HOUR;
+  // Snap to the top of the hour so the countdown lands on the boundary itself.
+  const hourStart = Math.floor((at / HOUR + GAME_UTC_OFFSET_HOURS)) * HOUR - GAME_UTC_OFFSET_HOURS * HOUR;
+  return hourStart + hoursUntil * HOUR;
+};
+
 const clamp = (value: number) => Math.max(0, Math.min(STAT_MAX, value));
 
 /** mulberry32 — small, fast, and identical in every JS engine. */
@@ -104,11 +140,20 @@ export const simulate = (cat: SimInput, now = Date.now()): SimulatedCat => {
   const seedBase = hash(cat.id);
 
   for (let step = 0; step < steps; step++) {
-    const decay = SATIETY_DECAY_PER_HOUR * (illness ? ILL_DECAY_MULTIPLIER : 1);
-    satiety = clamp(satiety - decay * stepHours);
+    const at = from + step * STEP_MS;
+    const asleep = isNight(at);
 
-    const drift =
-      satiety >= SATIETY_THRESHOLD ? HAPPINESS_RISE_PER_HOUR : -HAPPINESS_FALL_PER_HOUR;
+    // Asleep she does not get hungry at all, ill or not.
+    if (!asleep) {
+      const decay = SATIETY_DECAY_PER_HOUR * (illness ? ILL_DECAY_MULTIPLIER : 1);
+      satiety = clamp(satiety - decay * stepHours);
+    }
+
+    const drift = asleep
+      ? SLEEP_HAPPINESS_PER_HOUR
+      : satiety >= SATIETY_THRESHOLD
+        ? HAPPINESS_RISE_PER_HOUR
+        : -HAPPINESS_FALL_PER_HOUR;
     happiness = clamp(happiness + drift * stepHours - (illness ? ILL_HAPPINESS_PER_HOUR * stepHours : 0));
 
     if (!illness) {
@@ -152,6 +197,8 @@ export type FeedResult = Snapshot & {
 export const applyFood = (cat: CatState, itemId: string, now = Date.now()): FeedResult | null => {
   const item = itemById(itemId);
   if (!item || item.kind === 'medicine') return null;
+  // Medicine still gets through at night; a bowl of food does not.
+  if (isNight(now)) return null;
 
   const current = simulate(cat, now);
   const taste = tasteFor(cat.taste_seed, itemId);
@@ -216,7 +263,7 @@ export const petCooldownLeft = (
     ? 0
     : Math.max(0, Date.parse(cat.last_petted_at) + PET_COOLDOWN_MS - now);
 
-export type PlayRefusal = { ok: false; reason: 'resting' | 'ill' };
+export type PlayRefusal = { ok: false; reason: 'resting' | 'ill' | 'asleep' };
 export type PlayReadiness = { ok: true } | PlayRefusal;
 export type PlayOutcome = { ok: true; snapshot: Snapshot } | PlayRefusal;
 
@@ -228,6 +275,7 @@ export const canPlay = (
   cat: SimInput & Pick<CatState, 'last_petted_at'>,
   now = Date.now(),
 ): PlayReadiness => {
+  if (isNight(now)) return { ok: false, reason: 'asleep' };
   if (petCooldownLeft(cat, now) > 0) return { ok: false, reason: 'resting' };
   if (simulate(cat, now).illness) return { ok: false, reason: 'ill' };
   return { ok: true };

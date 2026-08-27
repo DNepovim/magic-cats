@@ -1,4 +1,4 @@
-import { applyFood, applyMedicine } from '$lib/game/care';
+import { applyFood, applyMedicine, isNight } from '$lib/game/care';
 import { itemById } from '$lib/game/items';
 import type { CatRow, UserItemRow } from '$lib/supabase/types';
 import { error, json } from '@sveltejs/kit';
@@ -47,7 +47,13 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
   const result =
     item.kind === 'medicine' ? applyMedicine(cat, itemId, now) : applyFood(cat, itemId, now);
 
-  if (!result) throw error(400, 'That item cannot be given');
+  if (!result) {
+    // applyFood refuses a sleeping cat; medicine has no such scruples.
+    if (item.kind !== 'medicine' && isNight(now)) {
+      throw error(409, 'She is asleep — do not wake her for food');
+    }
+    throw error(400, 'That item cannot be given');
+  }
   if ('ok' in result && !result.ok) throw error(409, MEDICINE_ERRORS[result.reason]);
 
   const next = 'ok' in result ? result.snapshot : result;
