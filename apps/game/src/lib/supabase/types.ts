@@ -89,6 +89,17 @@ export type BreedingRequestRow = {
   decided_at: string | null;
 };
 
+/** An invitation from a breeding's creator to a particular cat. */
+export type BreedingInviteRow = {
+  id: string;
+  breeding_id: string;
+  cat_id: string;
+  invited_user_id: string;
+  status: 'pending' | 'accepted' | 'declined';
+  created_at: string;
+  decided_at: string | null;
+};
+
 export type BreedingPostRow = {
   id: string;
   breeding_id: string;

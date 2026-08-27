@@ -10,14 +10,27 @@
 
   // Four buckets, in the order you care about them. A breeding you are in and
   // have another request pending on lands in "yours" — the strongest tie wins.
+  const invited = $derived(data.breedings.filter((b) => b.invited_cats.length > 0));
   const yours = $derived(data.breedings.filter((b) => b.is_admin));
-  const joined = $derived(data.breedings.filter((b) => !b.is_admin && b.my_cats.length > 0));
+  const joined = $derived(
+    data.breedings.filter((b) => !b.is_admin && b.invited_cats.length === 0 && b.my_cats.length > 0),
+  );
   const requested = $derived(
-    data.breedings.filter((b) => !b.is_admin && b.my_cats.length === 0 && b.pending_cats.length > 0),
+    data.breedings.filter(
+      (b) =>
+        !b.is_admin &&
+        b.invited_cats.length === 0 &&
+        b.my_cats.length === 0 &&
+        b.pending_cats.length > 0,
+    ),
   );
   const rest = $derived(
     data.breedings.filter(
-      (b) => !b.is_admin && b.my_cats.length === 0 && b.pending_cats.length === 0,
+      (b) =>
+        !b.is_admin &&
+        b.invited_cats.length === 0 &&
+        b.my_cats.length === 0 &&
+        b.pending_cats.length === 0,
     ),
   );
 
@@ -147,6 +160,11 @@
                 {m.breeding_your_cats_here({ names: names(breeding.my_cats) })}
               </p>
             {/if}
+            {#if breeding.invited_cats.length > 0}
+              <p class="font-retro mt-2 text-[0.55rem]" style="color: var(--color-gold);">
+                {m.breeding_invited_here({ names: names(breeding.invited_cats) })}
+              </p>
+            {/if}
             {#if breeding.pending_cats.length > 0}
               <p class="font-retro mt-1 text-[0.55rem]" style="color: var(--color-cyan);">
                 {m.breeding_your_requests_here({ names: names(breeding.pending_cats) })}
@@ -184,6 +202,7 @@
         {m.breeding_empty()}
       </p>
     {:else}
+      {@render section(m.breeding_section_invited(), invited)}
       {@render section(m.breeding_section_yours(), yours)}
       {@render section(m.breeding_section_joined(), joined)}
       {@render section(m.breeding_section_requested(), requested)}

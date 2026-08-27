@@ -1,4 +1,5 @@
 import type {
+  BreedingInviteRow,
   BreedingPostRow,
   BreedingRequestRow,
   BreedingRow,
@@ -82,9 +83,41 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   const pendingCatIds = new Set((myPending ?? []).map((r) => r.cat_id));
 
+  // Invitations, from both ends. RLS returns only rows this user is party to,
+  // so the admin sees what they sent and everyone else sees what they were sent.
+  const { data: invites } = await locals.supabase
+    .from('breeding_invites')
+    .select('*, cats(*)')
+    .eq('breeding_id', params.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+    .returns<(BreedingInviteRow & { cats: CatRow | null })[]>();
+
+  const openInvites = (invites ?? []).map((invite) => ({ ...invite, cat: invite.cats }));
+
+  // Cats the admin could still invite: other people's, not already placed, not
+  // already asked. An invite nobody could accept is worse than none.
+  const invitedCatIds = new Set(openInvites.map((invite) => invite.cat_id));
+  const { data: freeCats } = isAdmin
+    ? await locals.supabase
+        .from('cats')
+        .select('id, name, image_url, owner_user_id')
+        .neq('owner_user_id', locals.user.id)
+        .order('domesticated_at', { ascending: false })
+        .limit(40)
+        .returns<Pick<CatRow, 'id' | 'name' | 'image_url' | 'owner_user_id'>[]>()
+    : { data: [] as Pick<CatRow, 'id' | 'name' | 'image_url' | 'owner_user_id'>[] };
+
   return {
     breeding,
     cats,
+    /** Open invites the admin has sent. */
+    sentInvites: isAdmin ? openInvites : [],
+    /** Open invites addressed to you. */
+    myInvites: openInvites.filter((invite) => invite.invited_user_id === locals.user?.id),
+    invitableCats: (freeCats ?? []).filter(
+      (cat) => !placed.has(cat.id) && !invitedCatIds.has(cat.id),
+    ),
     posts: posts ?? [],
     pendingRequests: (requests ?? []).map((r) => ({ ...r, cat: r.cats })),
     isAdmin,

@@ -11,6 +11,7 @@
   let busy = $state(false);
   let actionError = $state<string | null>(null);
   let selectedCatId = $state('');
+  let inviteCatId = $state('');
   let message = $state('');
 
   async function send(url: string, init: RequestInit, fallback: string) {
@@ -61,6 +62,24 @@
     );
     if (ok) selectedCatId = '';
   }
+
+  async function invite(event: SubmitEvent) {
+    event.preventDefault();
+    if (!inviteCatId) return;
+    const ok = await send(
+      `/api/breedings/${data.breeding.id}/invites`,
+      json({ cat_id: inviteCatId }),
+      m.breeding_invite_failed(),
+    );
+    if (ok) inviteCatId = '';
+  }
+
+  const answerInvite = (inviteId: string, action: 'accept' | 'decline') =>
+    send(
+      `/api/breedings/${data.breeding.id}/invites/${inviteId}`,
+      json({ action }),
+      m.breeding_invite_failed(),
+    );
 
   const decide = (requestId: string, action: 'accept' | 'reject') =>
     send(
@@ -135,6 +154,39 @@
         {/if}
       </div>
     </header>
+
+    {#each data.myInvites as invite (invite.id)}
+      <div
+        class="flex flex-col gap-3 rounded-xl p-4"
+        style="background: rgba(26,10,0,0.6); border: 2px solid var(--color-gold); box-shadow: 0 0 12px rgba(255,196,0,0.35);"
+      >
+        <p class="font-retro text-xs" style="color: var(--color-gold);">
+          ✉️ {m.breeding_invite_received({
+            name: invite.cat?.name ?? m.breeding_unknown_cat(),
+            breeding: data.breeding.name,
+          })}
+        </p>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            onclick={() => answerInvite(invite.id, 'accept')}
+            disabled={busy}
+            class="btn-magic flex-1 text-base disabled:opacity-60"
+          >
+            {m.breeding_invite_accept()}
+          </button>
+          <button
+            type="button"
+            onclick={() => answerInvite(invite.id, 'decline')}
+            disabled={busy}
+            class="font-retro flex-1 rounded-md px-3 py-2 text-[0.6rem] disabled:opacity-50"
+            style="color: var(--color-silver); background: rgba(255,255,255,0.06); border: 1px solid var(--color-magic);"
+          >
+            {m.breeding_invite_decline()}
+          </button>
+        </div>
+      </div>
+    {/each}
 
     {#if actionError}
       <p class="font-retro text-xs" style="color: var(--color-magenta);">{actionError}</p>
@@ -249,6 +301,59 @@
         </div>
 
         {#if data.isAdmin}
+          <div
+            class="mb-6 rounded-xl p-4"
+            style="background: rgba(8,0,26,0.55); border: 1px dashed var(--color-gold);"
+          >
+            <p class="font-retro mb-2 text-xs" style="color: var(--color-gold);">
+              {m.breeding_invite_title()}
+            </p>
+
+            {#if data.invitableCats.length === 0}
+              <p class="font-cursive text-sm" style="color: var(--color-silver); opacity: 0.7;">
+                {m.breeding_invite_nobody()}
+              </p>
+            {:else}
+              <form onsubmit={invite} class="flex flex-col gap-2">
+                <select
+                  bind:value={inviteCatId}
+                  required
+                  class="rounded-lg px-3 py-2 outline-none"
+                  style="background: rgba(0,0,0,0.5); color: var(--color-silver); font-family: var(--font-pixel); border: 2px solid var(--color-gold);"
+                >
+                  <option value="" disabled>{m.breeding_invite_choose()}</option>
+                  {#each data.invitableCats as cat (cat.id)}
+                    <option value={cat.id}>{cat.name}</option>
+                  {/each}
+                </select>
+                <button
+                  type="submit"
+                  disabled={busy || !inviteCatId}
+                  class="font-retro rounded-md px-3 py-3 text-[0.6rem] disabled:opacity-50"
+                  style="color: var(--color-void); background: var(--color-gold); border: 1px solid var(--color-gold);"
+                >
+                  {m.breeding_invite_cta()}
+                </button>
+              </form>
+            {/if}
+
+            {#if data.sentInvites.length > 0}
+              <p class="font-retro mt-3 mb-1 text-[0.55rem]" style="color: var(--color-silver); opacity: 0.7;">
+                {m.breeding_invite_awaiting()}
+              </p>
+              <ul class="flex flex-wrap gap-2">
+                {#each data.sentInvites as invite (invite.id)}
+                  <li
+                    class="font-retro rounded-md px-3 py-2 text-[0.55rem]"
+                    style="color: var(--color-silver); background: rgba(255,255,255,0.04); border: 1px solid var(--color-gold);"
+                  >
+                    ✉️ {invite.cat?.name ?? m.breeding_unknown_cat()}
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          </div>
+
           <h2
             class="mb-3"
             style="font-family: var(--font-display); color: var(--color-gold); font-size: 1.2rem;"
